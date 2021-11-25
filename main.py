@@ -1,19 +1,21 @@
 # Init database
-import sqlite3 as sql
+import sqlite3 as sql3
+from time import sleep
 
-cars = sql.connect("./db/application.db")
-cursor = cars.cursor()
+sql = sql3.connect("./model/database/app.db")
+cursor = sql.cursor()
 
 # Classes dependencies
-import functions.database as db
-import classes.user as user
-import classes.vehicle as vehicle
+import model.functions.database as db
+import model.classes.user as user
+import model.classes.vehicle as vehicle
 
+cursor.execute("PRAGMA foreign_keys = ON;")
 db.init()
 # # Start GUI from here
 
-
-test = False
+# print(cursor.execute("PRAGMA foreign_keys;").fetchone())
+test = True
 if test:
     users = db.select_all_users()
     n = 3
