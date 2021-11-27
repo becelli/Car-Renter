@@ -1,20 +1,20 @@
 from dataclasses import dataclass
-import model.functions.database as db
-from model.classes.payment import payment
+from model.classes import payment
+from model.functions import database as db
 from datetime import date
 
 
 @dataclass
 class Rent:
-    _employee_id: int
     _vehicle_id: int
+    _client_id: int
+    _employee_id: int
     _start_date: date
     _end_date: date
     _total_value: float
     _payment_method: payment
     _insurance: list
     _is_returned: bool
-    _client_id: int = -1
 
     def save(self):
         db.insert_rent(self)

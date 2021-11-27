@@ -162,7 +162,7 @@ class Client(User):
             + f"Permission Category: {self.get_permission_category()}\n"
             + f"Permission Number: {self.get_permission_number()}\n"
             + f"Permission Expiration: {self.get_permission_expiration()}\n"
-            + f"Is Golden Client: {self.get_is_golden_client()}\n"
+            + f"Is Golden Client: {True if self.get_is_golden_client() else False}\n"
         )
 
     # TODO: Remove this validation

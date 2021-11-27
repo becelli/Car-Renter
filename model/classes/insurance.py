@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class insurance:
+class Insurance:
     _name: str
     _model: str
     _description: str

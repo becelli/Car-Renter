@@ -32,7 +32,6 @@ class Vehicle(ABC):
     @abstractmethod
     def __str__(self):
         return (
-            f"vehicle ID: {self.get_vehicle_id()}\n"
             f"Model: {self.get_model()}\n"
             f"Manufacturer: {self.get_manufacturer()}\n"
             f"Fabrication Year: {self.get_fabrication_year()}\n"
@@ -47,9 +46,6 @@ class Vehicle(ABC):
     # *************************************************************************
     # Getters and Setters
     # *************************************************************************
-    def get_vehicle_id(self):
-        return self._vehicle_id
-
     def get_model(self):
         return self._model
 
@@ -119,7 +115,7 @@ class National(Vehicle):
         return self._rent_value * (1 + self.get_state_taxes())
 
     def __str__(self):
-        return super().__str__() + f"\nState Taxes: {self.get_state_taxes()}"
+        return super().__str__() + f"State Taxes: {self.get_state_taxes()}\n"
 
     def save(self):
         return db.insert_vehicle(self)
@@ -139,9 +135,6 @@ class Imported(Vehicle):
     _state_taxes: float
     _federal_taxes: float
 
-    def save(self):
-        return db.insert_vehicle(self)
-
     def calculate_daily_rent_value(self):
         return self.get_rent_value() * (
             1 + self.get_state_taxes() + self.get_federal_taxes()
@@ -153,6 +146,9 @@ class Imported(Vehicle):
             + f"State Taxes: {self.get_state_taxes()} \n"
             + f"Federal Taxes: {self.get_federal_taxes()} \n"
         )
+
+    def save(self):
+        return db.insert_vehicle(self)
 
     # *****************************************************************************************
     # Getters and Setters
