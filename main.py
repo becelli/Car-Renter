@@ -11,22 +11,32 @@ import model.classes.user as user
 import model.classes.vehicle as vehicle
 
 cursor.execute("PRAGMA foreign_keys = ON;")
-db.init()
+# db.init()
 # # Start GUI from here
 
-# print(cursor.execute("PRAGMA foreign_keys;").fetchone())
+
 test = True
+# test = False
 if test:
+    n = 5
+    # db.populate_user(n)
+    # db.populate_vehicle(n)
+    # db.populate_rent(n)
+    # db.populate_payment(n)
+    # db.populate_insurance(n)
     users = db.select_all_users()
-    n = 3
-    db.populate_user(n)
-    db.populate_vehicle(n)
 
     users = db.select_all_users()
-    vehicles = db.select_all_cars()
+    vehicles = db.select_all_vehicles()
 
-    for user in users:
-        print(user)
-        print("\n--------\n")
+    # for user in users:
+    #     print(user)
     for vehicle in vehicles:
-        print(vehicle)
+        # print(vehicle)
+        pass
+
+# user2 = db.select_employee("13129652527")
+# print(user2)
+national = db.select_imported_vehicle("KCW-2989")
+# national = db.select_all_imported()
+print(national)
