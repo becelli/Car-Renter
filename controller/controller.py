@@ -42,3 +42,15 @@ def test():
     national = db.select_imported_vehicle("KCW-2989")
     # national = db.select_all_imported()
     print(national)
+
+
+def select_all_vehicles():
+    return db.select_all_vehicles()
+
+
+def select_all_national_vehicles():
+    return db.select_all_national_vehicles()
+
+
+def select_all_imported_vehicles():
+    return db.select_all_imported_vehicles()

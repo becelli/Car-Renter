@@ -516,6 +516,88 @@ def select_national_vehicle(plate: str):
     )
 
 
+def select_all_imported_vehicles():
+    cursor.execute(
+        f"SELECT * FROM vehicle JOIN imported_vehicle ON vehicle.plate = imported_vehicle.plate"
+    )
+    query_execution = cursor.fetchall()
+    if query_execution is None:
+        return None
+    # else...
+    vehicles = []
+    for v in query_execution:
+        [
+            plate,
+            model,
+            manufacturer,
+            fabrication_year,
+            model_year,
+            category,
+            fipe_value,
+            rent_value,
+            is_available,
+            _,
+            state_taxes,
+            federal_taxes,
+        ] = v
+        vehicles.append(
+            vehicle.National(
+                plate,
+                model,
+                manufacturer,
+                fabrication_year,
+                model_year,
+                category,
+                fipe_value,
+                rent_value,
+                is_available,
+                state_taxes,
+                federal_taxes,
+            )
+        )
+    return vehicles
+
+
+def select_all_national_vehicles():
+    cursor.execute(
+        f"SELECT * FROM vehicle JOIN national_vehicle ON vehicle.plate = national_vehicle.plate"
+    )
+    query_execution = cursor.fetchall()
+    if query_execution is None:
+        return None
+    # else...
+    vehicles = []
+    for v in query_execution:
+        [
+            plate,
+            model,
+            manufacturer,
+            fabrication_year,
+            model_year,
+            category,
+            fipe_value,
+            rent_value,
+            is_available,
+            _,
+            state_taxes,
+        ] = v
+        vehicles.append(
+            vehicle.National(
+                plate,
+                model,
+                manufacturer,
+                fabrication_year,
+                model_year,
+                category,
+                fipe_value,
+                rent_value,
+                is_available,
+                state_taxes,
+            )
+        )
+        return vehicles
+
+
 def select_imported_vehicle(plate: str):
     cursor.execute(
         f"SELECT * FROM vehicle JOIN imported_vehicle ON vehicle.plate = imported_vehicle.plate WHERE vehicle.plate = '{plate}'"
