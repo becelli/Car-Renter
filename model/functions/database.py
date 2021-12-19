@@ -4,7 +4,7 @@ import model.classes.user as user
 import model.classes.vehicle as vehicle
 from model.classes import user, vehicle, payment, rent, insurance
 import model.functions.random as rand
-
+from datetime import datetime
 
 sql = sql3.connect("./model/database/app.db")
 cursor = sql.cursor()
@@ -399,6 +399,7 @@ def select_all_users():
     return cursor.fetchall()
 
 
+# TODO IMPLEMENT DIFF FUNCTIONS
 def select_all_vehicles():
     cursor.execute("SELECT * FROM vehicle")
     return cursor.fetchall()
@@ -561,6 +562,127 @@ def select_all_imported_vehicles():
 def select_all_national_vehicles():
     cursor.execute(
         f"SELECT * FROM vehicle JOIN national_vehicle ON vehicle.plate = national_vehicle.plate"
+    )
+    query_execution = cursor.fetchall()
+    if query_execution is None:
+        return None
+    # else...
+    vehicles = []
+    for v in query_execution:
+        [
+            plate,
+            model,
+            manufacturer,
+            fabrication_year,
+            model_year,
+            category,
+            fipe_value,
+            rent_value,
+            is_available,
+            _,
+            state_taxes,
+        ] = v
+        vehicles.append(
+            vehicle.National(
+                plate,
+                model,
+                manufacturer,
+                fabrication_year,
+                model_year,
+                category,
+                fipe_value,
+                rent_value,
+                is_available,
+                state_taxes,
+            )
+        )
+        return vehicles
+
+
+def select_available_vehicles():
+    cursor.execute(
+        f"SELECT * FROM vehicle JOIN national_vehicle ON vehicle.plate = national_vehicle.plate WHERE is_available = 1"
+    )
+    query_execution = cursor.fetchall()
+    if query_execution is None:
+        return None
+    # else...
+    vehicles = []
+    for v in query_execution:
+        [
+            plate,
+            model,
+            manufacturer,
+            fabrication_year,
+            model_year,
+            category,
+            fipe_value,
+            rent_value,
+            is_available,
+            _,
+            state_taxes,
+        ] = v
+        vehicles.append(
+            vehicle.National(
+                plate,
+                model,
+                manufacturer,
+                fabrication_year,
+                model_year,
+                category,
+                fipe_value,
+                rent_value,
+                is_available,
+                state_taxes,
+            )
+        )
+        return vehicles
+
+
+def select_rented_vehicles():
+    cursor.execute(
+        f"SELECT * FROM vehicle JOIN national_vehicle ON vehicle.plate = national_vehicle.plate WHERE is_available = 0"
+    )
+    query_execution = cursor.fetchall()
+    if query_execution is None:
+        return None
+    # else...
+    vehicles = []
+    for v in query_execution:
+        [
+            plate,
+            model,
+            manufacturer,
+            fabrication_year,
+            model_year,
+            category,
+            fipe_value,
+            rent_value,
+            is_available,
+            _,
+            state_taxes,
+        ] = v
+        vehicles.append(
+            vehicle.National(
+                plate,
+                model,
+                manufacturer,
+                fabrication_year,
+                model_year,
+                category,
+                fipe_value,
+                rent_value,
+                is_available,
+                state_taxes,
+            )
+        )
+        return vehicles
+
+
+def select_not_returned_vehicles():
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    cursor.execute(
+        f"SELECT * FROM vehicle JOIN national_vehicle ON vehicle.plate = national_vehicle.plate WHERE {current_date} > vehicle.return_date"
     )
     query_execution = cursor.fetchall()
     if query_execution is None:

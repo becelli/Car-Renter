@@ -52,22 +52,27 @@ def vehicle_menu_options(menu):
     vehicles_reports.add_command(
         label="Geral", command=lambda: print(c.select_all_vehicles())
     )
-    vehicles_reports.add_command(
-        label="Nacionais", command=lambda: c.select_all_national_vehicles()
-    )
-    vehicles_reports.add_command(
-        label="Importados", command=lambda: c.select_all_imported_vehicles()
-    )
-    vehicles_reports.add_command(
-        label="Disponíveis", command=lambda: c.select_all_available_vehicles()
-    )
-    vehicles_reports.add_command(
-        label="Alugados", command=lambda: c.select_all_rented_vehicles()
-    )
-    vehicles_reports.add_command(
-        label="Não Devolvidos", command=lambda: c.select_all_not_returned_vehicles()
-    )
+    # vehicles_reports.add_command(
+    #     label="Nacionais", command=lambda: print(c.select_all_national_vehicles())
+    # )
+    # vehicles_reports.add_command(
+    #     label="Importados", command=lambda: print(c.select_all_imported_vehicles())
+    # )
+    # vehicles_reports.add_command(
+    #     label="Disponíveis", command=lambda: print(c.select_all_available_vehicles())
+    # )
+    # vehicles_reports.add_command(
+    #     label="Alugados", command=lambda: print(c.select_all_rented_vehicles())
+    # )
+    # vehicles_reports.add_command(
+    #     label="Não Devolvidos",
+    #     command=lambda: print(c.select_all_not_returned_vehicles()),
+    # )
     # TODO Listar todos os Veículos já locados por um Cliente em específico.
+    vehicles_reports.add_command(
+        label="Locados por Cliente",
+        command=lambda: c.select_all_rented_vehicles_by_client_id(),
+    )
     # Other options
     menu.add_command(label="Cadastrar", command=lambda: v.create_vehicle())
     menu.add_command(label="Alterar", command=lambda: v.update_vehicle())
