@@ -52,16 +52,6 @@ def vehicle_menu_options(menu):
     vehicles_reports.add_command(
         label="Geral", command=lambda: print(c.select_all_vehicles())
     )
-<<<<<<< Updated upstream
-    vehicles_reports.add_command(
-        label="Nacionais", command=lambda: c.select_all_national_vehicles()
-    )
-    vehicles_reports.add_command(
-        label="Importados", command=lambda: c.select_all_imported_vehicles()
-    )
-    vehicles_reports.add_command(
-        label="Disponíveis", command=lambda: c.select_all_available_vehicles()
-=======
     vehicles_reports.add_command(
         label="Nacionais", command=lambda: print(c.select_all_national_vehicles())
     )
@@ -82,7 +72,6 @@ def vehicle_menu_options(menu):
     vehicles_reports.add_command(
         label="Locados por Cliente",
         command=lambda: c.select_rented_vehicles_by_client_id(id),
->>>>>>> Stashed changes
     )
     vehicles_reports.add_command(
         label="Alugados", command=lambda: c.select_all_rented_vehicles()

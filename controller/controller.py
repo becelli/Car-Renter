@@ -15,8 +15,7 @@ def main():
 
 def test():
     db.init()
-    init_gui()
-    init_gui()
+    gui_init()
     test = False
     # test = False
     if test:
@@ -54,8 +53,6 @@ def select_all_national_vehicles():
 
 def select_all_imported_vehicles():
     return db.select_all_imported_vehicles()
-<<<<<<< Updated upstream
-=======
 
 
 def select_available_vehicles():
@@ -72,4 +69,3 @@ def select_not_returned_vehicles():
 
 def select_rented_vehicles_by_client_id():
     return db.select_rented_vehicles_by_client_id()
->>>>>>> Stashed changes
