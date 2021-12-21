@@ -552,7 +552,6 @@ def select_all_imported_vehicles():
                 rent_value,
                 is_available,
                 state_taxes,
-                federal_taxes,
             )
         )
     return vehicles
@@ -598,6 +597,130 @@ def select_all_national_vehicles():
         return vehicles
 
 
+<<<<<<< Updated upstream
+=======
+def select_available_vehicles():
+    cursor.execute(
+        f"SELECT * FROM vehicle JOIN national_vehicle ON vehicle.plate = national_vehicle.plate WHERE is_available = 1"
+    )
+    query_execution = cursor.fetchall()
+    if query_execution is None:
+        return None
+    # else...
+    vehicles = []
+    for v in query_execution:
+        [
+            plate,
+            model,
+            manufacturer,
+            fabrication_year,
+            model_year,
+            category,
+            fipe_value,
+            rent_value,
+            is_available,
+            _,
+            state_taxes,
+        ] = v
+        vehicles.append(
+            vehicle.National(
+                plate,
+                model,
+                manufacturer,
+                fabrication_year,
+                model_year,
+                category,
+                fipe_value,
+                rent_value,
+                is_available,
+                state_taxes,
+            )
+        )
+        return vehicles
+
+
+def select_rented_vehicles():
+    cursor.execute(
+        f"SELECT * FROM vehicle JOIN national_vehicle ON vehicle.plate = national_vehicle.plate WHERE is_available = 0"
+    )
+    query_execution = cursor.fetchall()
+    if query_execution is None:
+        return None
+    # else...
+    vehicles = []
+    for v in query_execution:
+        [
+            plate,
+            model,
+            manufacturer,
+            fabrication_year,
+            model_year,
+            category,
+            fipe_value,
+            rent_value,
+            is_available,
+            _,
+            state_taxes,
+        ] = v
+        vehicles.append(
+            vehicle.National(
+                plate,
+                model,
+                manufacturer,
+                fabrication_year,
+                model_year,
+                category,
+                fipe_value,
+                rent_value,
+                is_available,
+                state_taxes,
+            )
+        )
+        return vehicles
+
+
+def select_not_returned_vehicles():
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    cursor.execute(
+        f"SELECT * FROM rent JOIN vehicle ON rent.plate = vehicle.plate WHERE {current_date} > rent.end_date"
+    )
+    query_execution = cursor.fetchall()
+    if query_execution is None:
+        return None
+    # else...
+    rents = []
+    for v in query_execution:
+        [
+            plate,
+            model,
+            manufacturer,
+            fabrication_year,
+            model_year,
+            category,
+            fipe_value,
+            rent_value,
+            is_available,
+            _,
+            state_taxes,
+        ] = v
+        rents.append(
+            vehicle.National(
+                plate,
+                model,
+                manufacturer,
+                fabrication_year,
+                model_year,
+                category,
+                fipe_value,
+                rent_value,
+                is_available,
+                state_taxes,
+            )
+        )
+        return rents
+
+
+>>>>>>> Stashed changes
 def select_imported_vehicle(plate: str):
     cursor.execute(
         f"SELECT * FROM vehicle JOIN imported_vehicle ON vehicle.plate = imported_vehicle.plate WHERE vehicle.plate = '{plate}'"

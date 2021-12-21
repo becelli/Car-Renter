@@ -12,7 +12,7 @@ def init():
     root = Tk()
     frm = ttk.Frame(root, padding=10)
     frm.grid()
-    root.geometry("1280x720")
+    root.geometry("600x400")
     root.title("Renterio - Sistema de Locações de Veículos")
     # stgrt from here
     create_menu_bar(root)
@@ -52,6 +52,7 @@ def vehicle_menu_options(menu):
     vehicles_reports.add_command(
         label="Geral", command=lambda: print(c.select_all_vehicles())
     )
+<<<<<<< Updated upstream
     vehicles_reports.add_command(
         label="Nacionais", command=lambda: c.select_all_national_vehicles()
     )
@@ -60,6 +61,28 @@ def vehicle_menu_options(menu):
     )
     vehicles_reports.add_command(
         label="Disponíveis", command=lambda: c.select_all_available_vehicles()
+=======
+    vehicles_reports.add_command(
+        label="Nacionais", command=lambda: print(c.select_all_national_vehicles())
+    )
+    vehicles_reports.add_command(
+        label="Importados", command=lambda: print(c.select_all_imported_vehicles())
+    )
+    vehicles_reports.add_command(
+        label="Disponíveis", command=lambda: print(c.select_available_vehicles())
+    )
+    vehicles_reports.add_command(
+        label="Alugados", command=lambda: print(c.select_rented_vehicles())
+    )
+    vehicles_reports.add_command(
+        label="Não Devolvidos",
+        command=lambda: print(c.select_not_returned_vehicles()),
+    )
+    # TODO Listar todos os Veículos já locados por um Cliente em específico.
+    vehicles_reports.add_command(
+        label="Locados por Cliente",
+        command=lambda: c.select_rented_vehicles_by_client_id(id),
+>>>>>>> Stashed changes
     )
     vehicles_reports.add_command(
         label="Alugados", command=lambda: c.select_all_rented_vehicles()
