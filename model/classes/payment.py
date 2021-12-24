@@ -24,11 +24,19 @@ class Payment(ABC):
 
 @dataclass
 class Cash(Payment):
+    _name: str = "Dinheiro"
+
     def __str__(self):
         return super().__str__()
 
     def save(self):
         db.insert_payment(self)
+
+    def get_name(self):
+        return self._name
+
+    def set_name(self, name: str):
+        self._name = name
 
 
 @dataclass
