@@ -6,33 +6,38 @@ from datetime import date
 
 @dataclass
 class Rent:
-    _vehicle_id: int
-    _client_id: int
-    _employee_id: int
+    _vehicle_plate: str
+    _client_cpf: str
+    _employee_cpf: str
     _start_date: date
     _end_date: date
     _total_value: float
     _payment_method: payment
     _insurance: list
     _is_returned: bool
+    _id: int = 0
 
     def save(self):
         db.insert_rent(self)
 
+    # TODO
     def calculate_total_value(self):
         pass
 
     # **********************************************************************************************************************
     # Getters and Setters
     # **********************************************************************************************************************
-    def get_client_id(self):
-        return self._client_id
+    def get_id(self):
+        return self._id
 
-    def get_employee_id(self):
-        return self._employee_id
+    def get_client_cpf(self):
+        return self._client_cpf
 
-    def get_vehicle_id(self):
-        return self._vehicle_id
+    def get_employee_cpf(self):
+        return self._employee_cpf
+
+    def get_vehicle_plate(self):
+        return self._vehicle_plate
 
     def get_start_date(self):
         return self._start_date
@@ -52,17 +57,20 @@ class Rent:
     def get_is_returned(self):
         return self._is_returned
 
-    def set_client_id(self, client_id: int):
+    def set_id(self, id):
+        self._id = id
 
-        self._client_id = client_id
+    def set_client_cpf(self, client_cpf: str):
 
-    def set_employee_id(self, employee_id: int):
+        self._client_cpf = client_cpf
 
-        self._employee_id = employee_id
+    def set_employee_cpf(self, employee_cpf: str):
 
-    def set_vehicle_id(self, vehicle_id: int):
+        self._employee_cpf = employee_cpf
 
-        self._vehicle_id = vehicle_id
+    def set_vehicle_plate(self, vehicle_id: str):
+
+        self._vehicle_plate = vehicle_id
 
     def set_start_date(self, start_date: date):
 
