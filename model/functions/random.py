@@ -112,10 +112,10 @@ def user(only_this_subclass=None):
         )
 
 
-# def rent():
-#     vehicle_id = db.select_all("vehicle")[0][0]
-#     employee_id = db.select_all("employee")[0][0]
-#     client_id = db.select_all("client")[0][0]
+def rent():
+    vehicle_id = db.select_all("vehicle")[0][0]
+    employee_id = db.select_all("employee")[0][0]
+    client_id = db.select_all("client")[0][0]
 
 
 def names():
