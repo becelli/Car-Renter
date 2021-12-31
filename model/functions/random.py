@@ -1,8 +1,8 @@
 # from datetime import datetime as dt
 import time
 import random as rd
+import model.functions.database as db
 
-# import model.functions.database as db
 
 # Generate random vehicle. National or Imported.
 def vehicle(only_this_subclass=None):
@@ -113,9 +113,10 @@ def user(only_this_subclass=None):
 
 
 def rent():
-    vehicle_id = db.select_all("vehicle")[0][0]
-    employee_id = db.select_all("employee")[0][0]
-    client_id = db.select_all("client")[0][0]
+    cursor.exe
+    # vehicle_id = db.select_all("vehicle")[0][0]
+    # employee_id = db.select_all("employee")[0][0]
+    # client_id = db.select_all("client")[0][0]
 
 
 def names():

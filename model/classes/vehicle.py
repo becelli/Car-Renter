@@ -5,11 +5,11 @@ import model.functions.database as db
 
 @dataclass
 class Vehicle(ABC):
+    _plate: str
     _model: str
     _manufacturer: str
     _fabrication_year: int
     _model_year: int
-    _plate: str
     _category: str
     _fipe_value: float
     _rent_value: float
