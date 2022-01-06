@@ -2,7 +2,7 @@
 import time
 import random as rd
 import model.functions.database as db
-
+from datetime import datetime as dt, timedelta as td
 
 # Generate random vehicle. National or Imported.
 def vehicle(only_this_subclass=None):
@@ -113,10 +113,33 @@ def user(only_this_subclass=None):
 
 
 def rent():
-    cursor.exe
-    # vehicle_id = db.select_all("vehicle")[0][0]
-    # employee_id = db.select_all("employee")[0][0]
-    # client_id = db.select_all("client")[0][0]
+    vehicles = db.select_all_vehicles()
+    employees = db.select_all_employees()
+    clients = db.select_all_clients()
+    v = rd.choice(vehicles)
+    e = rd.choice(employees)
+    c = rd.choice(clients)
+    year = rd.randint(2019, 2021)
+    d = dt.strptime(date_as_string(year, year + 1), "%d/%m/%Y")
+    df = d + td(days=rd.randint(15, 45))
+    import model.classes.rent as rent
+
+    r = rent.Rent(
+        v.get_plate(),
+        c.get_cpf(),
+        e.get_cpf(),
+        d,
+        df,
+        float(rd.randint(200, 700)) + rd.random() * 100,
+    )
+
+
+def payment_method():
+    import model.classes.payment as payment
+
+    c = rd.randint(0, 1)
+    if c == 0:
+        payment_method.Pay
 
 
 def names():
