@@ -47,6 +47,10 @@ def select_all_imported_vehicles():
     return db.select_all_imported_vehicles()
 
 
+def select_all_national_vehicles():
+    return db.select_all_national_vehicles()
+
+
 def select_available_vehicles():
     return db.select_available_vehicles()
 

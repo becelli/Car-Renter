@@ -1,16 +1,6 @@
-def b2d(binary):
-    """
-    Convert binary to decimal
-    """
-    binary_num = int(binary, 2)
-    aux = []
-    for i in range(len(binary)):
-        aux.append(binary[i])
-    return binary_num
+from datetime import datetime as dt, timedelta as td
 
-
-def d2b(decimal):
-    """
-    Convert decimal to binary
-    """
-    return bin(decimal)[2:]
+a = dt.strptime("01/01/2020", "%d/%m/%Y")
+b = td(days=1)
+c = a + b
+print(c)

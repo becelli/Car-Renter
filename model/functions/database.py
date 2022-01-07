@@ -4,6 +4,7 @@ import sqlite3 as sql3
 from tkinter.constants import E
 import model.classes.user as user
 import model.classes.vehicle as vehicle
+import model.functions.convert as convert
 from model.classes import payment, rent, insurance
 import model.functions.random as rand
 
@@ -74,7 +75,7 @@ def create_client_table():
     cursor.execute(
         """CREATE TABLE IF NOT EXISTS client (
         cpf CHAR(11) PRIMARY KEY,
-        permissiclienton_category CHAR(1) CHECK (permission_category IN ('A', 'B', 'C', 'D', 'E')),
+        permission_category CHAR(1) CHECK (permission_category IN ('A', 'B', 'C', 'D', 'E')),
         permission_number CHAR(10) UNIQUE,
         permission_expiration DATE,
         is_golden_client BOOL DEFAULT FALSE,
@@ -107,7 +108,7 @@ def create_vehicle_table():
         category TEXT NOT NULL CHECK (category IN ('car', 'motorcycle', 'truck', 'bus', 'van', 'bicycle')),
         fipe_value REAL NOT NULL CHECK (fipe_value > 0) DEFAULT 5000.00,
         rent_value REAL NOT NULL CHECK (rent_value > 0) DEFAULT 100.00,
-        is_available BOOL NOT NULL DEFAULT TRUE
+        is_available BOOL NOT NULL DEFAULT TRUE,
         active BOOL NOT NULL DEFAULT TRUE
         )"""
     )
@@ -316,11 +317,11 @@ def insert_vehicle(vehicle_object: vehicle.Vehicle):
             vehicle_object.get_rent_value(),
         ),
     )
-    sql.commit()
     if isinstance(vehicle_object, vehicle.National):
         insert_national(vehicle_object)
     elif isinstance(vehicle_object, vehicle.Imported):
         insert_imported(vehicle_object)
+    sql.commit()
 
 
 def insert_national(vehicle_object: vehicle.National):
@@ -331,7 +332,6 @@ def insert_national(vehicle_object: vehicle.National):
             vehicle_object.get_state_taxes(),
         ),
     )
-    sql.commit()
 
 
 def insert_imported(vehicle_object: vehicle.Imported):
@@ -343,7 +343,6 @@ def insert_imported(vehicle_object: vehicle.Imported):
             vehicle_object.get_federal_taxes(),
         ),
     )
-    sql.commit()
 
 
 # PAYMENT #
@@ -404,8 +403,8 @@ def insert_rent(rent_object: rent.Rent):
             rent_object.get_start_date(),
             rent_object.get_end_date(),
             rent_object.get_total_value(),
-            rent_object.get_payment_id(),
-            rent_object.get_insurance_id(),
+            rent_object.get_payment_method(),
+            rent_object.get_insurance(),
             rent_object.get_is_returned(),
         ),
     )
@@ -416,62 +415,63 @@ def insert_rent(rent_object: rent.Rent):
 
 
 def select_all_users():
-    cursor.execute("SELECT * FROM user")
+    cursor.execute("SELECT * FROM user WHERE active = 1")
     query_result = cursor.fetchall()
     users = []
     for user in query_result:
-        [cpf, role, rg, name, birth_date, address, zip_code, email] = user
-        if role == "client":
-            cursor.execute(f"SELECT * FROM {role} WHERE cpf = '{cpf}'")
-            query_result_2 = cursor.fetchone()
-            [
-                permission_category,
-                permission_number,
-                permission_expiration,
-                is_golden_client,
-            ] = query_result_2
-            users.append(
-                user.Client(
-                    cpf,
-                    rg,
-                    name,
-                    birth_date,
-                    address,
-                    zip_code,
-                    email,
+        [cpf, role, rg, name, birth_date, address, zip_code, email, active] = user
+        if active:
+            if role == "client":
+                cursor.execute(f"SELECT * FROM {role} WHERE cpf = '{cpf}'")
+                query_result_2 = cursor.fetchone()
+                [
                     permission_category,
                     permission_number,
                     permission_expiration,
                     is_golden_client,
+                ] = query_result_2
+                users.append(
+                    user.Client(
+                        cpf,
+                        rg,
+                        name,
+                        birth_date,
+                        address,
+                        zip_code,
+                        email,
+                        permission_category,
+                        permission_number,
+                        permission_expiration,
+                        is_golden_client,
+                    )
                 )
-            )
-        elif role == "employee":
-            cursor.execute(f"SELECT * FROM {role} WHERE cpf = '{cpf}'")
-            query_result_2 = cursor.fetchone()
-            [
-                salary,
-                pis,
-                admission_date,
-            ] = query_result_2
-            users.append(
-                user.Employee(
-                    cpf,
-                    rg,
-                    name,
-                    birth_date,
-                    address,
-                    zip_code,
-                    email,
+            elif role == "employee":
+                cursor.execute(f"SELECT * FROM {role} WHERE cpf = '{cpf}'")
+                query_result_2 = cursor.fetchone()
+                [
                     salary,
                     pis,
                     admission_date,
+                ] = query_result_2
+                users.append(
+                    user.Employee(
+                        cpf,
+                        rg,
+                        name,
+                        birth_date,
+                        address,
+                        zip_code,
+                        email,
+                        salary,
+                        pis,
+                        admission_date,
+                    )
                 )
-            )
     return users
 
 
 def select_all_vehicles():
-    cursor.execute("SELECT * FROM vehicle")
+    cursor.execute("SELECT * FROM vehicle WHERE active = 1")
     query_result = cursor.fetchall()
     vehicles = []
     for query in query_result:
@@ -486,48 +486,50 @@ def select_all_vehicles():
             fipe_value,
             rent_value,
             is_available,
+            active,
         ] = query
-        if origin == "imported":
-            cursor.execute(
-                f"SELECT state_taxes, federal_taxes FROM {origin}_vehicle WHERE plate = '{plate}'"
-            )
-            query_result = cursor.fetchone()
-            [state_taxes, federal_taxes] = query_result
-            vehicles.append(
-                vehicle.Imported(
-                    plate,
-                    model,
-                    manufacturer,
-                    fabrication_year,
-                    model_year,
-                    category,
-                    fipe_value,
-                    rent_value,
-                    is_available,
-                    state_taxes,
-                    federal_taxes,
+        if active:
+            if origin == "imported":
+                cursor.execute(
+                    f"SELECT state_taxes, federal_taxes FROM {origin}_vehicle WHERE plate = '{plate}'"
                 )
-            )
-        elif origin == "national":
-            cursor.execute(
-                f"SELECT state_taxes FROM {origin}_vehicle WHERE plate = '{plate}'"
-            )
-            query_result = cursor.fetchone()
-            [state_taxes] = query_result
-            vehicles.append(
-                vehicle.National(
-                    plate,
-                    model,
-                    manufacturer,
-                    fabrication_year,
-                    model_year,
-                    category,
-                    fipe_value,
-                    rent_value,
-                    is_available,
-                    state_taxes,
+                query_result = cursor.fetchone()
+                [state_taxes, federal_taxes] = query_result
+                vehicles.append(
+                    vehicle.Imported(
+                        plate,
+                        model,
+                        manufacturer,
+                        fabrication_year,
+                        model_year,
+                        category,
+                        fipe_value,
+                        rent_value,
+                        is_available,
+                        state_taxes,
+                        federal_taxes,
+                    )
                 )
-            )
+            elif origin == "national":
+                cursor.execute(
+                    f"SELECT state_taxes FROM {origin}_vehicle WHERE plate = '{plate}'"
+                )
+                query_result = cursor.fetchone()
+                [state_taxes] = query_result
+                vehicles.append(
+                    vehicle.National(
+                        plate,
+                        model,
+                        manufacturer,
+                        fabrication_year,
+                        model_year,
+                        category,
+                        fipe_value,
+                        rent_value,
+                        is_available,
+                        state_taxes,
+                    )
+                )
     return vehicles
 
 
@@ -569,6 +571,7 @@ def select_all_rents():
     rents = []
     for query in query_result:
         [
+            id,
             vehicle_plate,
             client_cpf,
             employee_cpf,
@@ -576,21 +579,34 @@ def select_all_rents():
             end_date,
             value,
             payment_id,
-            insurance_id,
+            insurance,
             is_returned,
         ] = query
+        insurances = convert.d2b_list(insurance)
+        insurances_list = []
+        for i in range(len(insurances)):
+            ins = insurances[i]
+            if ins == 1:
+                cursor.execute(f"SELECT * FROM insurance WHERE id = '{2 ** i}'")
+                query_result = cursor.fetchone()
+                [
+                    name,
+                    model,
+                    description,
+                    value,
+                ] = query_result
+                insurances_list.append(
+                    insurance.Insurance(
+                        2 ** i,
+                        name,
+                        model,
+                        description,
+                        value,
+                    )
+                )
         cursor.execute(f"SELECT * FROM payment WHERE id = '{payment_id}'")
         query_result = cursor.fetchone()
-        [id, payment_type] = query_result
-        cursor.execute(f"SELECT * FROM insurance WHERE id = '{insurance_id}'")
-        query_result = cursor.fetchone()
-        [
-            id,
-            name,
-            model,
-            description,
-            value,
-        ] = query_result
+        payment_obj = payment.Payment(query_result[0], query_result[1])
         rents.append(
             rent.Rent(
                 vehicle_plate,
@@ -599,11 +615,13 @@ def select_all_rents():
                 start_date,
                 end_date,
                 value,
-                payment_id,
-                insurance_id,
+                payment_obj,
+                insurances_list,
                 is_returned,
+                id,
             )
         )
+    return rents
 
 
 def select_all_finished_rents():
@@ -759,26 +777,27 @@ def select_all_employees():
     query_result = cursor.fetchall()
     employees = []
     for employee in query_result:
-        [cpf, rg, name, birth_date, address, zip_code, email] = employee
-        cursor.execute(
-            f"SELECT salary, pis, admission_date FROM employee WHERE cpf = '{cpf}'"
-        )
-        query_result_2 = cursor.fetchone()
-        [salary, pis, admission_date] = query_result_2
-        employees.append(
-            user.Employee(
-                cpf,
-                rg,
-                name,
-                birth_date,
-                address,
-                zip_code,
-                email,
-                salary,
-                pis,
-                admission_date,
+        [cpf, rg, name, birth_date, address, zip_code, email, active] = employee
+        if active:
+            cursor.execute(
+                f"SELECT salary, pis, admission_date FROM employee WHERE cpf = '{cpf}'"
             )
-        )
+            query_result_2 = cursor.fetchone()
+            [salary, pis, admission_date] = query_result_2
+            employees.append(
+                user.Employee(
+                    cpf,
+                    rg,
+                    name,
+                    birth_date,
+                    address,
+                    zip_code,
+                    email,
+                    salary,
+                    pis,
+                    admission_date,
+                )
+            )
     return employees
 
 
@@ -795,6 +814,7 @@ def select_all_insurances():
             value,
         ] = query
         insurances.append(insurance.Insurance(id, name, model, description, value))
+    return insurances
 
 
 def select_all_clients():
@@ -1297,5 +1317,3 @@ def select_imported_vehicle(plate: str):
 
 
 # TODO Move from her.e..
-def binary_to_array(binary: bytes):
-    return [int(b) for b in binary]

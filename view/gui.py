@@ -26,23 +26,23 @@ def init():
 
 def create_menu_bar(root):
     # create menu bar
-    menu_bar = Menu(root)
+    menu_bar = Menu(root, tearoff=0)
     root.config(menu=menu_bar)
 
     # create menu bar entries
-    vehicle_menu = Menu(menu_bar)
+    vehicle_menu = Menu(menu_bar, tearoff=0)
     menu_bar.add_cascade(label="Veículos", menu=vehicle_menu)
     vehicle_menu_options(vehicle_menu)
 
-    user_menu = Menu(menu_bar)
+    user_menu = Menu(menu_bar, tearoff=0)
     menu_bar.add_cascade(label="Usuários", menu=user_menu)
     user_menu_options(user_menu)
 
-    rents_menu = Menu(menu_bar)
+    rents_menu = Menu(menu_bar, tearoff=0)
     menu_bar.add_cascade(label="Locações", menu=rents_menu)
     rents_menu_options(rents_menu)
 
-    insurance_menu = Menu(menu_bar)
+    insurance_menu = Menu(menu_bar, tearoff=0)
     menu_bar.add_cascade(label="Seguros", menu=insurance_menu)
     insurance_menu_options(insurance_menu)
 
@@ -50,7 +50,7 @@ def create_menu_bar(root):
 def vehicle_menu_options(menu):
     # Reports
     # TODO pass as parameter to vehicle view
-    vehicles_reports = Menu(menu)
+    vehicles_reports = Menu(menu, tearoff=0)
     menu.add_cascade(label="Consultar", menu=vehicles_reports)
     vehicles_reports.add_command(
         label="Geral", command=lambda: print(c.select_all_vehicles())
@@ -85,10 +85,10 @@ def vehicle_menu_options(menu):
 
 def user_menu_options(menu):
     # Employee submenu
-    employees = Menu(menu)
+    employees = Menu(menu, tearoff=0)
     menu.add_cascade(label="Funcionários", menu=employees)
 
-    employees_reports = Menu(employees)
+    employees_reports = Menu(employees, tearoff=0)
     employees.add_cascade(label="Consultar", menu=employees_reports)
 
     employees_reports.add_command(
@@ -102,9 +102,9 @@ def user_menu_options(menu):
     employees.add_command(label="Excluir", command=lambda: usergg.delete_employee())
 
     # Clients Submenu
-    clients = Menu(menu)
+    clients = Menu(menu, tearoff=0)
     menu.add_cascade(label="Clientes", menu=clients)
-    clients_reports = Menu(clients)
+    clients_reports = Menu(clients, tearoff=0)
     clients.add_cascade(label="Consultar", menu=clients_reports)
 
     clients_reports.add_command(
@@ -124,7 +124,7 @@ def user_menu_options(menu):
 
 
 def rents_menu_options(menu):
-    rents_reports = Menu(menu)
+    rents_reports = Menu(menu, tearoff=0)
     menu.add_cascade(label="Consultar", menu=rents_reports)
 
     rents_reports.add_command(

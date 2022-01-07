@@ -18,13 +18,20 @@ class Payment(ABC):
     def get_name(self):
         return self._name
 
+    def get_id(self):
+        return self._id
+
     def set_name(self, name: str):
         self._name = name
+
+    def set_id(self, id: int):
+        self._id = id
 
 
 @dataclass
 class Cash(Payment):
     _name: str = "Dinheiro"
+    _id: int = 0
 
     def __str__(self):
         return super().__str__()
@@ -44,6 +51,7 @@ class Card(Payment):
     _card_holder: str
     _card_number: str
     _card_flag: str
+    _id: int = 0
 
     def save(self):
         db.insert_payment(self)
