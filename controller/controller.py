@@ -130,7 +130,7 @@ def select_all_ongoing_rents():
 
 
 def select_all_expired_rents():
-    return db.select_all_late_rents()
+    return db.select_all_expired_rents()
 
 
 def select_monthly_rents(date: datetime):

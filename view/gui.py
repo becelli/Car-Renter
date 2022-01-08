@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 import controller.controller as c
+from model.functions.database import insert_national
 import view.vehicle as vehg
 import view.user as userg
 import view.rent as rentg
@@ -28,7 +29,6 @@ def create_menu_bar(root):
     # create menu bar
     menu_bar = Menu(root, tearoff=0)
     root.config(menu=menu_bar)
-
     # create menu bar entries
     vehicle_menu = Menu(menu_bar, tearoff=0)
     menu_bar.add_cascade(label="Veículos", menu=vehicle_menu)
@@ -76,11 +76,18 @@ def vehicle_menu_options(menu):
         label="Locados por Cliente",
         command=lambda: vehg.select_rented_vehicles_by_client_id(),
     )
-    # TODO Listar todos os Veículos já locados por um Cliente em específico.
-    # Other options
-    menu.add_command(label="Cadastrar", command=lambda: vehg.create_vehicle())
-    menu.add_command(label="Alterar", command=lambda: vehg.update_vehicle())
-    menu.add_command(label="Excluir", command=lambda: vehg.delete_vehicle())
+
+    vehicle_options = Menu(menu, tearoff=0)
+    menu.add_cascade(label="Cadastrar", menu=vehicle_options)
+
+    vehicle_options.add_command(
+        label="Nacional", command=lambda: vehg.insert_national_gui(menu)
+    )
+    vehicle_options.add_command(
+        label="Importado", command=lambda: vehg.insert_imported_gui(menu)
+    )
+    menu.add_command(label="Alterar", command=lambda: vehg.update_vehicle(menu))
+    menu.add_command(label="Excluir", command=lambda: vehg.delete_vehicle(menu))
 
 
 def user_menu_options(menu):
@@ -99,7 +106,7 @@ def user_menu_options(menu):
     )
     employees.add_command(label="Cadastrar", command=lambda: userg.create_employee())
     employees.add_command(label="Alterar", command=lambda: userg.update_employee())
-    employees.add_command(label="Excluir", command=lambda: usergg.delete_employee())
+    employees.add_command(label="Excluir", command=lambda: userg.delete_employee())
 
     # Clients Submenu
     clients = Menu(menu, tearoff=0)
@@ -131,16 +138,16 @@ def rents_menu_options(menu):
         label="Todas", command=lambda: print(c.select_all_rents())
     )
     rents_reports.add_command(
-        label="Finalizadas", command=lambda: c.select_all_finished_rents()
+        label="Finalizadas", command=lambda: print(c.select_all_finished_rents())
     )
     rents_reports.add_command(
-        label="Em andamento", command=lambda: c.select_all_ongoing_rents()
+        label="Em andamento", command=lambda: print(c.select_all_ongoing_rents())
     )
     rents_reports.add_command(
-        label="Em atraso", command=lambda: c.select_expired_rents()
+        label="Em atraso", command=lambda: print(c.select_all_expired_rents())
     )
     rents_reports.add_command(
-        label="Realizadas no mês", command=lambda: c.select_monthly_rents()
+        label="Realizadas no mês", command=lambda: rentg.select_monthly_rents()
     )
     menu.add_command(label="Cadastrar", command=lambda: rentg.create_rental())
     menu.add_command(label="Alterar", command=lambda: rentg.update_rental())
