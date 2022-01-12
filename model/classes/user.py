@@ -41,32 +41,6 @@ class User(ABC):
             f"Email: {self.get_email()}\n"
         )
 
-    # TODO: Remove these alidation
-    # def validate_email(self, email: str):
-    #     if email is None:
-    #         raise ValueError("Email cannot be empty")
-    #     if "@" not in email:
-    #         raise ValueError("Email must contain @")
-    #     if "." not in email:
-    #         raise ValueError("Email must contain .")
-    #     if email.count("@") > 1:
-    #         raise ValueError("Email must contain only one @")
-
-    # def validate_birth_date(self, birth_date: str):
-    #     if birth_date is None:
-    #         raise ValueError("Birth date cannot be empty")
-    #     if len(birth_date) != 10:
-    #         raise ValueError("Birth date must be 10 digits")
-    #     if birth_date[4] != "-" or birth_date[7] != "-":
-    #         raise ValueError("Birth date must be in format YYYY-MM-DD")
-    #     try:
-    #         dt.strptime(birth_date, "%Y-%m-%d")
-    #     except ValueError:
-    #         raise ValueError("Birth date must be in format YYYY-MM-DD")
-
-    # *************************************************************************
-    # Getters and setters
-    # *************************************************************************
     def get_name(self):
         return self._name
 
@@ -138,17 +112,6 @@ class Employee(User):
             + f"Admission Date: {self.get_admission_date()}\n"
         )
 
-    # TODO Remove this validation
-    # def validate_admission_date(self, admission_date):
-    #     if len(admission_date) != 10:
-    #         raise ValueError("Invalid date expression")
-    #     aux = dt.strptime(admission_date, "%Y-%m-%d")
-    #     if aux > dt.now():
-    #         raise ValueError("admission date must be in the past")
-
-    # *****************************************************************************************
-    # Getters and Setters
-    # *****************************************************************************************
     def get_salary(self):
         return self._salary
 
