@@ -1,19 +1,20 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-import model.functions.database as db
+import model.classes.database as db
 
 
-@dataclass
 class Payment(ABC):
-    _name: str
+    def __init__(self, name, id: int = None) -> None:
+        self._name: str = name
+        self._id: int = id
 
     @abstractmethod
     def __str__(self):
-        return f"Payment method: {self.get_name()}"
+        return f"Nome: {self.get_name()}"
 
-    @abstractmethod
-    def save(self):
-        pass
+    def save(self, database: str = "app.db"):
+        ret = db.Database(database).insert_payment(self)
+        if ret is not None:
+            self._id = ret
 
     def get_name(self):
         return self._name
@@ -28,16 +29,12 @@ class Payment(ABC):
         self._id = id
 
 
-@dataclass
 class Cash(Payment):
-    _name: str = "Dinheiro"
-    _id: int = 0
+    def __init__(self, name: str = "Dinheiro"):
+        super().__init__(name)
 
     def __str__(self):
         return super().__str__()
-
-    def save(self):
-        db.insert_payment(self)
 
     def get_name(self):
         return self._name
@@ -46,37 +43,23 @@ class Cash(Payment):
         self._name = name
 
 
-@dataclass
 class Card(Payment):
-    _card_holder: str
-    _card_number: str
-    _card_flag: str
-    _id: int = 0
-
-    def save(self):
-        db.insert_payment(self)
+    def __init__(self, name: str, card_number: str, card_flag: str):
+        super().__init__(name)
+        self._card_number = card_number
+        self._card_flag = card_flag
 
     def __str__(self):
         return (
-            super().__str__() + f"\nCard Holder: {self.get_card_holder()}"
-            f"\nCard Number: {self.get_card_number()}"
-            f"\nCard Flag: {self.get_card_flag()}"
+            super().__str__() + f"\nNúmero do cartão: {self.get_card_number()}"
+            f"\nBandeira: {self.get_card_flag()}"
         )
-
-    # **********************************************************************************************************************
-    # Getters and Setters
-    # **********************************************************************************************************************
-    def get_card_holder(self):
-        return self._card_holder
 
     def get_card_number(self):
         return self._card_number
 
     def get_card_flag(self):
         return self._card_flag
-
-    def set_card_holder(self, card_holder: str):
-        self._card_holder = card_holder
 
     def set_card_number(self, card_number: str):
         self._card_number = card_number

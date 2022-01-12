@@ -1,12 +1,20 @@
-from dataclasses import dataclass
+import model.classes.database as db
 
 
-@dataclass
 class Insurance:
-    _name: str
-    _model: str
-    _description: str
-    _value: float
+    def __init__(
+        self, name: str, model: str, description: str, value: float, id: int = None
+    ):
+        self._name: str = name
+        self._model: str = model
+        self._description: str = description
+        self._value: str = value
+        self._id: int = id
+
+    def save(self, database: str = "app.db"):
+        ret = db.Database(database).insert_insurance(self)
+        if ret is not None:
+            self._id = ret
 
     def __str__(self):
         return (

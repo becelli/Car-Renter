@@ -1,23 +1,36 @@
-from dataclasses import dataclass
 from abc import ABC, abstractmethod
-import model.functions.database as db
+import model.classes.database as db
 
 
-@dataclass
 class Vehicle(ABC):
-    _plate: str
-    _model: str
-    _manufacturer: str
-    _fabrication_year: int
-    _model_year: int
-    _category: str
-    _fipe_value: float
-    _rent_value: float
-    _is_available: bool
+    def __init__(
+        self,
+        plate: str,
+        model: str,
+        manufacturer: str,
+        fabrication_year: int,
+        model_year: int,
+        category: str,
+        fipe_value: float,
+        rent_value: float,
+        is_available: bool,
+        id: int = None,
+    ):
+        self._plate = plate
+        self._model = model
+        self._manufacturer = manufacturer
+        self._fabrication_year = fabrication_year
+        self._model_year = model_year
+        self._category = category
+        self._fipe_value = fipe_value
+        self._rent_value = rent_value
+        self._is_available = is_available
+        self._id = id
 
-    @abstractmethod
-    def save(self):
-        pass
+    def save(self, database: str = "app.db"):
+        ret = db.Database(database).insert_vehicle(self)
+        if ret is not None:
+            self._id = ret
 
     @abstractmethod
     def calculate_daily_rent_value(self):
@@ -86,12 +99,6 @@ class Vehicle(ABC):
         self._model_year = model_year
 
     def set_plate(self, plate: str):
-        # TODO: Move logic to front-end
-        # if len(plate) != 8:
-        #     raise ValueError("plate must be 7 digits")
-        # for i in range(len(plate)):
-        #     if (i < 3 and plate[i].isdigit()) or (i >= 4 and plate[i].isalpha()):
-        #         raise ValueError("plate must be a valid plate")
         self._plate = plate.upper()
 
     def set_category(self, category: str):
@@ -107,9 +114,34 @@ class Vehicle(ABC):
         self._is_available = is_available
 
 
-@dataclass
 class National(Vehicle):
-    _state_taxes: float
+    def __init__(
+        self,
+        plate: str,
+        model: str,
+        manufacturer: str,
+        fabrication_year: int,
+        model_year: int,
+        category: str,
+        fipe_value: float,
+        rent_value: float,
+        is_available: bool,
+        state_taxes: float,
+        id: int = None,
+    ):
+        super().__init__(
+            plate,
+            model,
+            manufacturer,
+            fabrication_year,
+            model_year,
+            category,
+            fipe_value,
+            rent_value,
+            is_available,
+            id,
+        )
+        self._state_taxes = state_taxes
 
     def calculate_daily_rent_value(self):
         return self._rent_value * (1 + self.get_state_taxes())
@@ -117,12 +149,6 @@ class National(Vehicle):
     def __str__(self):
         return super().__str__() + f"State Taxes: {self.get_state_taxes()}\n"
 
-    def save(self):
-        return db.insert_vehicle(self)
-
-    # *************************************************************************
-    # Getters and Setters
-    # *************************************************************************
     def get_state_taxes(self):
         return self._state_taxes
 
@@ -130,10 +156,36 @@ class National(Vehicle):
         self._state_taxes = state_taxes
 
 
-@dataclass
 class Imported(Vehicle):
-    _state_taxes: float
-    _federal_taxes: float
+    def __init__(
+        self,
+        plate: str,
+        model: str,
+        manufacturer: str,
+        fabrication_year: int,
+        model_year: int,
+        category: str,
+        fipe_value: float,
+        rent_value: float,
+        is_available: bool,
+        state_taxes: float,
+        federal_taxes: float,
+        id: int = None,
+    ):
+        super().__init__(
+            plate,
+            model,
+            manufacturer,
+            fabrication_year,
+            model_year,
+            category,
+            fipe_value,
+            rent_value,
+            is_available,
+            id,
+        )
+        self._state_taxes = state_taxes
+        self._federal_taxes = federal_taxes
 
     def calculate_daily_rent_value(self):
         return self.get_rent_value() * (
@@ -147,12 +199,6 @@ class Imported(Vehicle):
             + f"Federal Taxes: {self.get_federal_taxes()} \n"
         )
 
-    def save(self):
-        return db.insert_vehicle(self)
-
-    # *****************************************************************************************
-    # Getters and Setters
-    # *****************************************************************************************
     def get_state_taxes(self):
         return self._state_taxes
 

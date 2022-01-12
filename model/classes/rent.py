@@ -1,28 +1,50 @@
-from dataclasses import dataclass
 from model.classes import payment
-from model.functions import database as db
+import model.classes.database as database
 from datetime import date
 
 
-@dataclass
 class Rent:
-    _vehicle_plate: str
-    _client_cpf: str
-    _employee_cpf: str
-    _start_date: date
-    _end_date: date
-    _total_value: float
-    _payment_method: payment
-    _insurance: list
-    _is_returned: bool
-    _id: int = 0
+    def __init__(
+        self,
+        vehicle_plate: str,
+        client_cpf: str,
+        employee_cpf: str,
+        start_date: date,
+        end_date: date,
+        total_value: float,
+        payment_method: payment,
+        insurance: list,
+        is_returned: bool = False,
+        id: int = None,
+        db: str = "app.db",
+    ) -> None:
+        self._vehicle_plate = vehicle_plate
+        self._client_cpf = client_cpf
+        self._employee_cpf = employee_cpf
+        self._start_date = start_date
+        self._end_date = end_date
+        self._total_value = total_value
+        self._payment_method = payment_method
+        self._insurance = insurance
+        self._is_returned = is_returned
+        self._id = id
+        self._db = database.Database(db)
 
     def save(self):
-        db.insert_rent(self)
+        ret = self.db.insert_rent(self)
+        if ret is not None:
+            self._id = ret
 
     # TODO
     def calculate_total_value(self):
-        pass
+        db = database.Database()
+        vehicle = db.select_national_vehicle(self.get_vehicle_plate())
+
+        days = (self.get_end_date() - self.get_start_date()).days
+        total_value = days * vehicle.calculate_daily_rent_value()
+        for insurance in self.get_insurance():
+            total_value += insurance.get_value()
+        return total_value
 
     # **********************************************************************************************************************
     # Getters and Setters

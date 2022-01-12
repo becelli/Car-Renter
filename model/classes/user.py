@@ -1,22 +1,33 @@
-from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from datetime import date
-import model.functions.database as db
+import model.classes.database as db
 
 
-@dataclass
 class User(ABC):
-    _name: str
-    _cpf: str
-    _rg: str
-    _birth_date: date
-    _address: str
-    _zip_code: str
-    _email: str
+    def __init__(
+        self,
+        name: str,
+        cpf: str,
+        rg: str,
+        birth_date: date,
+        address: str,
+        zip_code: str,
+        email: str,
+        id: int = None,
+    ):
+        self._name = name
+        self._cpf = cpf
+        self._rg = rg
+        self._birth_date = birth_date
+        self._address = address
+        self._zip_code = zip_code
+        self._email = email
+        self._id = id
 
-    @abstractmethod
-    def save(self):
-        pass
+    def save(self, database: str = "app.db"):
+        ret = db.Database(database).insert_user(self)
+        if ret is not None:
+            self._id = ret
 
     @abstractmethod
     def __str__(self):
@@ -99,14 +110,25 @@ class User(ABC):
         self._email = email
 
 
-@dataclass
 class Employee(User):
-    _salary: float
-    _pis: str
-    _admission_date: str
-
-    def save(self):
-        return db.insert_user(self)
+    def __init__(
+        self,
+        name: str,
+        cpf: str,
+        rg: str,
+        birth_date: date,
+        address: str,
+        zip_code: str,
+        email: str,
+        salary: float,
+        pis: str,
+        admission_date: date,
+        id: int = None,
+    ):
+        super().__init__(name, cpf, rg, birth_date, address, zip_code, email, id)
+        self._salary = salary
+        self._pis = pis
+        self._admission_date = admission_date
 
     def __str__(self):
         return (
@@ -146,15 +168,27 @@ class Employee(User):
         self._admission_date = admission_date
 
 
-@dataclass
 class Client(User):
-    _permission_category: str
-    _permission_number: str
-    _permission_expiration: str
-    _is_golden_client: bool
-
-    def save(self):
-        return db.insert_user(self)
+    def __init__(
+        self,
+        name: str,
+        cpf: str,
+        rg: str,
+        birth_date: date,
+        address: str,
+        zip_code: str,
+        email: str,
+        permission_category,
+        permission_number,
+        permission_expiration,
+        is_golden_client,
+        id: int = None,
+    ):
+        super().__init__(name, cpf, rg, birth_date, address, zip_code, email, id)
+        self._permission_category = permission_category
+        self._permission_number = permission_number
+        self._permission_expiration = permission_expiration
+        self._is_golden_client = is_golden_client
 
     def __str__(self):
         return (
@@ -164,14 +198,6 @@ class Client(User):
             + f"Permission Expiration: {self.get_permission_expiration()}\n"
             + f"Is Golden Client: {True if self.get_is_golden_client() else False}\n"
         )
-
-    # TODO: Remove this validation
-    # def validate_permission_expiration(self, permission_expiration):
-    #     if len(permission_expiration) != 7:
-    #         raise ValueError("Invalid date expression")
-    #     aux = dt.strptime(permission_expiration, "%Y-%m")
-    #     if aux < dt.now():
-    #         raise ValueError("Permission expiration date is in the past")
 
     # *****************************************************************************************
     # Getters and Setters
