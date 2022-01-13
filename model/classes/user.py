@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from datetime import date
-import model.classes.database as db
+import model.classes.database as database
 
 
 class User(ABC):
@@ -13,7 +13,6 @@ class User(ABC):
         address: str,
         zip_code: str,
         email: str,
-        id: int = None,
     ):
         self._name = name
         self._cpf = cpf
@@ -22,12 +21,9 @@ class User(ABC):
         self._address = address
         self._zip_code = zip_code
         self._email = email
-        self._id = id
 
-    def save(self, database: str = "app.db"):
-        ret = db.Database(database).insert_user(self)
-        if ret is not None:
-            self._id = ret
+    def save(self, db: str = "app.db"):
+        database.Database(db).insert_user(self)
 
     @abstractmethod
     def __str__(self):
@@ -97,9 +93,8 @@ class Employee(User):
         salary: float,
         pis: str,
         admission_date: date,
-        id: int = None,
     ):
-        super().__init__(name, cpf, rg, birth_date, address, zip_code, email, id)
+        super().__init__(name, cpf, rg, birth_date, address, zip_code, email)
         self._salary = salary
         self._pis = pis
         self._admission_date = admission_date
@@ -145,9 +140,8 @@ class Client(User):
         permission_number,
         permission_expiration,
         is_golden_client,
-        id: int = None,
     ):
-        super().__init__(name, cpf, rg, birth_date, address, zip_code, email, id)
+        super().__init__(name, cpf, rg, birth_date, address, zip_code, email)
         self._permission_category = permission_category
         self._permission_number = permission_number
         self._permission_expiration = permission_expiration
@@ -162,9 +156,6 @@ class Client(User):
             + f"Is Golden Client: {True if self.get_is_golden_client() else False}\n"
         )
 
-    # *****************************************************************************************
-    # Getters and Setters
-    # *****************************************************************************************
     def get_permission_category(self):
         return self._permission_category
 
@@ -181,9 +172,6 @@ class Client(User):
         self._permission_category = permission_category
 
     def set_permission_number(self, permission_number: str):
-        # TODO: Remove this validation
-        # if len(permission_number) != 10:
-        #     raise ValueError("Invalid permission number")
         self._permission_number = permission_number
 
     def set_permission_expiration(self, permission_expiration: str):

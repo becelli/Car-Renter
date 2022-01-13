@@ -1,10 +1,11 @@
 # from datetime import datetime as dt
 import time
 import random as rd
-import model.classes.database as db
+import controller.controller as c
 from datetime import datetime as dt, timedelta as td
 
 from model.classes.insurance import Insurance
+from model.classes.payment import Payment
 
 
 class Formats:
@@ -41,7 +42,8 @@ class Formats:
 
 class ClassesData:
     def __init__(self, database: str = "app.db"):
-        self.db = db.Database(database)
+        self.database_name = database
+        self.controller = c.Controller(database)
         self.basic_data = BasicData(database)
         self.formats = Formats()
 
@@ -151,35 +153,14 @@ class ClassesData:
                 admission_date,
             )
 
-    def rent(self):
-        vehicles = db.select_all_vehicles()
-        employees = db.select_all_employees()
-        clients = db.select_all_clients()
-        v = rd.choice(vehicles)
-        e = rd.choice(employees)
-        c = rd.choice(clients)
-        year = rd.randint(2019, 2021)
-        d = dt.strptime(self.formats.date_as_string(year, year + 1), "%d/%m/%Y")
-        df = d + td(days=rd.randint(15, 45))
-        import model.classes.rent as rent
-
-        r = rent.Rent(
-            v.get_plate(),
-            c.get_cpf(),
-            e.get_cpf(),
-            d,
-            df,
-            float(rd.randint(200, 700)) + rd.random() * 100,
-        )
-
-    def payment(self):
+    def payment(self, client_name: str = "Unknown"):
         import model.classes.payment as payment
 
         c = rd.choice([0, 1])
         if c:
             return payment.Cash()
         else:
-            name = self.basic_data.name()
+            name = self.basic_data.name() if client_name == "Unknown" else client_name
             number = self.formats.nsize_num_as_str(16)
             flags = ["Visa", "Mastercard", "American Express", "Hipercard", "Elo"]
             flag = rd.choice(flags)
@@ -189,7 +170,81 @@ class ClassesData:
         [name, model, description, value] = self.insurance_info()
         return Insurance(name, model, description, value)
 
-    # User info for testing.
+    def rent(self):
+        import model.classes.rent as rent
+        import model.classes.payment as payment
+
+        [
+            plate,
+            client_cpf,
+            employee_cpf,
+            start_date,
+            end_date,
+            total_value,
+            insurance,
+            is_returned,
+        ] = self.rent_info()
+
+        paymt: payment.Payment = self.payment(self.controller.select_client(client_cpf))
+        return rent.Rent(
+            plate,
+            client_cpf,
+            employee_cpf,
+            start_date,
+            end_date,
+            total_value,
+            paymt,
+            insurance,
+            is_returned,
+        )
+
+    def rent_info(self):
+        import model.classes.vehicle as vehicle
+        import model.classes.user as user
+        import model.classes.insurance as ins
+
+        vehicles = self.controller.select_all_available_vehicles()
+        employees = self.controller.select_all_employees()
+        clients = self.controller.select_all_clients()
+        v: vehicle.Vehicle = rd.choice(vehicles)
+        e: user.Employee = rd.choice(employees)
+        c: user.Client = rd.choice(clients) if len(clients) > 0 else None
+
+        year = rd.randint(2019, 2021)
+        d = dt.strptime(self.formats.date_as_string(year, year + 1), "%Y-%m-%d")
+
+        df = d + td(days=rd.randint(1, 7))
+
+        value = v.calculate_daily_rent_value() * df.day
+
+        insurances = self.controller.select_all_insurances()
+        insurance = []
+        for i in insurances:
+            insurance.append(0)
+
+        for insur in insurances:
+            if rd.choice([0, 0, 0, 1]):
+                i: ins.Insurance = insur
+                value += i.get_value()
+                insurance[insurances.index(insur)] = 1
+
+        is_returned = (
+            rd.choice([True, True, False])
+            if dt.now() > df
+            else rd.choice([True, False, False])
+        )
+
+        return [
+            v.get_plate(),
+            c.get_cpf(),
+            e.get_cpf(),
+            d,
+            df,
+            value,
+            insurance,
+            is_returned,
+        ]
+
     def user_info(self):
 
         name = self.basic_data.name()
@@ -212,7 +267,6 @@ class ClassesData:
             self.formats.date_as_string(y_min=2000, y_max=2020),  # admission_date
         ]
 
-    # Vehicle info for testing.
     def vehicle_info(self):
 
         brand = [
@@ -259,6 +313,7 @@ class ClassesData:
 
     def insurance_info(self):
         insurance_types = ["Roubo", "Furto", "Acidente", "Incendio", "Perda Total"]
+        insurance_models = ["Reembolso", "Substituição"]
         insurance_description = [
             "Seguro contra roubos",
             "Seguro contra furto",
@@ -267,10 +322,11 @@ class ClassesData:
             "Seguro contra perda total de veículo",
         ]
         insurance = rd.choice(insurance_types)
+        model = rd.choice(insurance_models)
         description = insurance_description[insurance_types.index(insurance)]
         return [
-            f"Seguro {rd.choice(insurance)}",
-            insurance,
+            f"Seguro contra {insurance}",
+            model,
             description,
             round(
                 rd.random() * 10000 * rd.randint(1, 3), 2
@@ -279,8 +335,8 @@ class ClassesData:
 
 
 class BasicData:
-    def __init__(self, database):
-        self.db = db.Database(database)
+    def __init__(self, db: str = "app.db"):
+        self.controller = c.Controller(db)
         self.formats = Formats()
 
     def plate(self) -> str:
@@ -487,22 +543,23 @@ class BasicData:
         return rd.choice(firstname_list) + " " + rd.choice(lastname_list)
 
 
-class DBGetter:
-    def __init__(self, database):
-        self.db = db.Database(database)
+# TODO remove
+# class DBGetter:
+#     def __init__(self, db: str = "app.db"):
+#         self.controller = c.Controller(db)
 
-    def client(self):
-        clients = self.db.select_all_clients()
-        return rd.choice(clients)
+#     def client(self):
+#         clients = self.controller.select_all_clients()
+#         return rd.choice(clients)
 
-    def employee(self):
-        employees = self.db.select_all_employees()
-        return rd.choice(employees)
+#     def employee(self):
+#         employees = self.controller.select_all_employees()
+#         return rd.choice(employees)
 
-    def national_vehicle(self):
-        national_vehicles = self.db.select_all_national_vehicles()
-        return rd.choice(national_vehicles)
+#     def national_vehicle(self):
+#         national_vehicles = self.controller.select_all_national_vehicles()
+#         return rd.choice(national_vehicles)
 
-    def imported_vehicle(self):
-        imported_vehicles = self.db.select_all_imported_vehicles()
-        return rd.choice(imported_vehicles)
+#     def imported_vehicle(self):
+#         imported_vehicles = self.controller.select_all_imported_vehicles()
+#         return rd.choice(imported_vehicles)

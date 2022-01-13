@@ -4,7 +4,9 @@ import sqlite3 as sql3
 import model.classes.user as user
 import model.classes.vehicle as vehicle
 import model.classes.converter as converter
-from model.classes import payment, rent, insurance
+import model.classes.payment as payment
+import model.classes.insurance as insurance
+import model.classes.rent as rent
 import model.classes.random as rand
 
 
@@ -159,7 +161,7 @@ class Database:
     def create_payment_cash_table(self):
         self.cursor.execute(
             """CREATE TABLE IF NOT EXISTS cash (
-            id INTEGER PRIMARY KEY,
+            id INTEGER NOT NULL,
             name TEXT NOT NULL DEFAULT 'Dinheiro',
             FOREIGN KEY (id) REFERENCES payment (id) ON DELETE CASCADE
             FOREIGN KEY (name) REFERENCES payment (name)
@@ -169,11 +171,12 @@ class Database:
     def create_payment_card_table(self):
         self.cursor.execute(
             """CREATE TABLE IF NOT EXISTS card (
-            id INTEGER PRIMARY KEY,
+            id INTEGER NOT NULL,
             name TEXT NOT NULL,
             card_number CHAR(16),
             card_flag TEXT,
             FOREIGN KEY (id) REFERENCES payment (id) ON DELETE CASCADE
+            FOREIGN KEY (name) REFERENCES payment (name)
             )"""
         )
 
@@ -207,7 +210,9 @@ class Database:
 
     def populate_rent(self, quantity: int = 10):
         for _i in range(quantity):
-            r = rand.ClassesData(self.database_name).rent()
+            r: rent.Rent = rand.ClassesData(self.database_name).rent()
+            p: payment.Payment = r.get_payment()
+            p.save(self.database_name)
             r.save(self.database_name)
 
     def populate_payment(self, quantity: int = 10):
@@ -219,12 +224,6 @@ class Database:
         for _i in range(quantity):
             i = rand.ClassesData(self.database_name).insurance()
             i.save(self.database_name)
-
-    # DROPS #
-    def drop_table(self, table_name: str):
-        self.cursor.execute(f"DROP TABLE {table_name}")
-        self.connection.commit()
-        return True
 
     # USER #
     def insert_user(self, user_object: user.User):
@@ -315,26 +314,31 @@ class Database:
 
     # PAYMENTS #
     def insert_payment(self, payment_object: payment.Payment):
-        self.cursor.execute(
+        id = self.cursor.execute(
             "INSERT INTO payment (name) VALUES (?)",
             (payment_object.get_name(),),
-        )
+        ).lastrowid
         if isinstance(payment_object, payment.Cash):
-            self.insert_cash(payment_object)
+            self.insert_cash(payment_object, id)
         elif isinstance(payment_object, payment.Card):
-            self.insert_card(payment_object)
+            self.insert_card(payment_object, id)
         self.connection.commit()
+        return id
 
-    def insert_cash(self, payment_object: payment.Cash):
+    def insert_cash(self, payment_object: payment.Cash, id):
         self.cursor.execute(
-            "INSERT INTO cash (name) VALUES (?)",
-            (payment_object.get_name(),),
+            "INSERT INTO cash (id, name) VALUES (?, ?)",
+            (
+                id,
+                payment_object.get_name(),
+            ),
         )
 
-    def insert_card(self, payment_object: payment.Card):
+    def insert_card(self, payment_object: payment.Card, id):
         self.cursor.execute(
-            "INSERT INTO card (name, card_number, card_flag) VALUES (?, ?, ?)",
+            "INSERT INTO card (id, name, card_number, card_flag) VALUES (?, ?, ?, ?)",
             (
+                id,
                 payment_object.get_name(),
                 payment_object.get_card_number(),
                 payment_object.get_card_flag(),
@@ -343,7 +347,7 @@ class Database:
 
     # INSURANCES #
     def insert_insurance(self, insurance_object: insurance.Insurance):
-        self.cursor.execute(
+        id = self.cursor.execute(
             "INSERT INTO insurance (name, model, description, value) VALUES (?, ?, ?, ?)",
             (
                 insurance_object.get_name(),
@@ -351,13 +355,19 @@ class Database:
                 insurance_object.get_description(),
                 insurance_object.get_value(),
             ),
-        )
+        ).lastrowid
         self.connection.commit()
+        return id
 
     # RENT #
-    def insert_rent(self, rent_object: rent.Rent):
-        self.cursor.execute(
-            "INSERT INTO rent (vehicle_plate, client_cpf, employee_cpf, start_date, end_date, value, payment_id, insurance_id, is_returned) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    def insert_rent(self, rent_object: rent.Rent) -> int:
+        insurances = rent_object.get_insurance()
+        insurance = converter.Converter.b_list2dec(insurances)
+        obj_payment: payment.Payment = rent_object.get_payment()
+        payment_id = obj_payment.get_id() if obj_payment else None
+
+        id = self.cursor.execute(
+            "INSERT INTO rent (vehicle, client, employee, start_date, end_date, value, payment_id, insurance, is_returned) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (
                 rent_object.get_vehicle_plate(),
                 rent_object.get_client_cpf(),
@@ -365,12 +375,13 @@ class Database:
                 rent_object.get_start_date(),
                 rent_object.get_end_date(),
                 rent_object.get_total_value(),
-                rent_object.get_payment_method(),
-                rent_object.get_insurance(),
+                payment_id,
+                insurance,
                 rent_object.get_is_returned(),
             ),
-        )
+        ).lastrowid
         self.connection.commit()
+        return id
 
     def select_all_users(self):
         self.cursor.execute("SELECT * FROM user WHERE active = 1")
@@ -489,6 +500,70 @@ class Database:
                     )
         return vehicles
 
+    def select_all_available_vehicles(self) -> list:
+        self.cursor.execute(
+            "SELECT * FROM vehicle WHERE active = 1 AND is_available = 1"
+        )
+        query_result = self.cursor.fetchall()
+        vehicles = []
+        for query in query_result:
+            [
+                plate,
+                origin,
+                model,
+                manufacturer,
+                fabrication_year,
+                model_year,
+                category,
+                fipe_value,
+                rent_value,
+                is_available,
+                active,
+            ] = query
+            if active:
+                if origin == "imported":
+                    self.cursor.execute(
+                        f"SELECT state_taxes, federal_taxes FROM {origin}_vehicle WHERE plate = '{plate}'"
+                    )
+                    query_result = self.cursor.fetchone()
+                    [state_taxes, federal_taxes] = query_result
+                    vehicles.append(
+                        vehicle.Imported(
+                            plate,
+                            model,
+                            manufacturer,
+                            fabrication_year,
+                            model_year,
+                            category,
+                            fipe_value,
+                            rent_value,
+                            is_available,
+                            state_taxes,
+                            federal_taxes,
+                        )
+                    )
+                elif origin == "national":
+                    self.cursor.execute(
+                        f"SELECT state_taxes FROM {origin}_vehicle WHERE plate = '{plate}'"
+                    )
+                    query_result = self.cursor.fetchone()
+                    [state_taxes] = query_result
+                    vehicles.append(
+                        vehicle.National(
+                            plate,
+                            model,
+                            manufacturer,
+                            fabrication_year,
+                            model_year,
+                            category,
+                            fipe_value,
+                            rent_value,
+                            is_available,
+                            state_taxes,
+                        )
+                    )
+        return vehicles
+
     def select_all_payments(self):
         self.cursor.execute("SELECT * FROM payment")
         query_result = self.cursor.fetchall()
@@ -511,11 +586,11 @@ class Database:
                 ] = query_result
                 payments.append(
                     payment.Card(
-                        id,
                         name,
                         card_holder,
                         card_number,
                         card_flag,
+                        id,
                     )
                 )
         return payments
@@ -534,10 +609,10 @@ class Database:
                 end_date,
                 value,
                 payment_id,
-                insurance,
+                insurance_sum,
                 is_returned,
             ] = query
-            insurances = converter.Converter().d2b_list(insurance)
+            insurances = converter.Converter().dec2b_list(insurance_sum)
             insurances_list = []
             for i in range(len(insurances)):
                 ins = insurances[i]
@@ -547,6 +622,7 @@ class Database:
                     )
                     query_result = self.cursor.fetchone()
                     [
+                        _,
                         name,
                         model,
                         description,
@@ -561,9 +637,22 @@ class Database:
                             value,
                         )
                     )
-            self.cursor.execute(f"SELECT * FROM payment WHERE id = '{payment_id}'")
-            query_result = self.cursor.fetchone()
-            payment_obj = payment.Payment(query_result[0], query_result[1])
+            payment_obj = None
+            self.cursor.execute(f"SELECT * FROM cash WHERE id = '{payment_id}'")
+            payment_data = self.cursor.fetchone()
+            if payment_data is not None:
+                payment_obj = payment.Cash(payment_data[0])
+            else:
+                self.cursor.execute(f"SELECT * FROM card WHERE id = '{payment_id}'")
+                payment_data = self.cursor.fetchone()
+                if payment_data is not None:
+                    payment_obj = payment.Card(
+                        payment_data[1],
+                        payment_data[2],
+                        payment_data[3],
+                        payment_data[4],
+                        payment_data[0],
+                    )
             rents.append(
                 rent.Rent(
                     vehicle_plate,
@@ -764,7 +853,7 @@ class Database:
                 description,
                 value,
             ] = query
-            insurances.append(insurance.Insurance(id, name, model, description, value))
+            insurances.append(insurance.Insurance(name, model, description, value, id))
         return insurances
 
     def select_all_clients(self):

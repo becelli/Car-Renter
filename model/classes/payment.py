@@ -30,8 +30,8 @@ class Payment(ABC):
 
 
 class Cash(Payment):
-    def __init__(self, name: str = "Dinheiro"):
-        super().__init__(name)
+    def __init__(self, name: str = "Dinheiro", id: int = None) -> None:
+        super().__init__(name, id)
 
     def __str__(self):
         return super().__str__()
@@ -44,8 +44,8 @@ class Cash(Payment):
 
 
 class Card(Payment):
-    def __init__(self, name: str, card_number: str, card_flag: str):
-        super().__init__(name)
+    def __init__(self, name: str, card_number: str, card_flag: str, id: int = None):
+        super().__init__(name, id)
         self._card_number = card_number
         self._card_flag = card_flag
 

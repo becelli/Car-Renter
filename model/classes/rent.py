@@ -1,5 +1,6 @@
-from model.classes import payment
+import model.classes.payment as payment
 import model.classes.database as database
+import controller.controller as controller
 from datetime import date
 
 
@@ -12,11 +13,10 @@ class Rent:
         start_date: date,
         end_date: date,
         total_value: float,
-        payment_method: payment,
+        payment: payment.Payment,
         insurance: list,
         is_returned: bool = False,
         id: int = None,
-        db: str = "app.db",
     ) -> None:
         self._vehicle_plate = vehicle_plate
         self._client_cpf = client_cpf
@@ -24,14 +24,13 @@ class Rent:
         self._start_date = start_date
         self._end_date = end_date
         self._total_value = total_value
-        self._payment_method = payment_method
+        self._payment = payment
         self._insurance = insurance
         self._is_returned = is_returned
         self._id = id
-        self._db = database.Database(db)
 
-    def save(self):
-        ret = self.db.insert_rent(self)
+    def save(self, db: str = "app.db"):
+        ret = controller.Controller(db).insert_rent(self)
         if ret is not None:
             self._id = ret
 
@@ -70,8 +69,8 @@ class Rent:
     def get_total_value(self):
         return self._total_value
 
-    def get_payment_method(self):
-        return self._payment_method
+    def get_payment(self):
+        return self._payment
 
     def get_insurance(self):
         return self._insurance
@@ -106,9 +105,9 @@ class Rent:
 
         self._total_value = total_value
 
-    def set_payment_method(self, payment_method: payment):
+    def set_payment(self, payment: payment):
 
-        self._payment_method = payment_method
+        self._payment = payment
 
     def set_insurance(self, insurance: list):
 

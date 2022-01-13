@@ -14,7 +14,6 @@ class Vehicle(ABC):
         fipe_value: float,
         rent_value: float,
         is_available: bool,
-        id: int = None,
     ):
         self._plate = plate
         self._model = model
@@ -25,12 +24,9 @@ class Vehicle(ABC):
         self._fipe_value = fipe_value
         self._rent_value = rent_value
         self._is_available = is_available
-        self._id = id
 
     def save(self, database: str = "app.db"):
-        ret = db.Database(database).insert_vehicle(self)
-        if ret is not None:
-            self._id = ret
+        db.Database(database).insert_vehicle(self)
 
     @abstractmethod
     def calculate_daily_rent_value(self):
@@ -127,7 +123,6 @@ class National(Vehicle):
         rent_value: float,
         is_available: bool,
         state_taxes: float,
-        id: int = None,
     ):
         super().__init__(
             plate,
@@ -139,7 +134,6 @@ class National(Vehicle):
             fipe_value,
             rent_value,
             is_available,
-            id,
         )
         self._state_taxes = state_taxes
 
@@ -170,7 +164,6 @@ class Imported(Vehicle):
         is_available: bool,
         state_taxes: float,
         federal_taxes: float,
-        id: int = None,
     ):
         super().__init__(
             plate,
@@ -182,7 +175,6 @@ class Imported(Vehicle):
             fipe_value,
             rent_value,
             is_available,
-            id,
         )
         self._state_taxes = state_taxes
         self._federal_taxes = federal_taxes

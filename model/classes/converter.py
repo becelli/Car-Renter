@@ -1,17 +1,5 @@
 class Converter:
-    def b2d(binary: int) -> int:
-        """
-        Convert binary to decimal
-        """
-        return int(binary, 2)
-
-    def d2b(decimal: int) -> int:
-        """
-        Convert decimal to binary
-        """
-        return bin(decimal)[2:]
-
-    def d2b_list(decimal: int) -> list:
+    def dec2b_list(self, decimal: int) -> list:
         """
         Convert decimal to binary
         """
@@ -20,3 +8,12 @@ class Converter:
         for i in a:
             b.append(int(i))
         return b
+
+    def b_list2dec(self, binary_list: list) -> int:
+        """
+        Convert a binary array to a decimal
+        """
+        a = 0
+        for i in binary_list:
+            a += i * 2 ** (len(binary_list) - binary_list.index(i) - 1)
+        return a

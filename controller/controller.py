@@ -7,10 +7,9 @@ class Controller:
     def __init__(self, db: str = "app.db"):
         self.db = database.Database(db)
 
-    def init_database(self):
+    def init_database(self, n: int = 10):
         self.db.init_tables()
 
-        n = 5
         if self.db.is_empty("user"):
             self.db.populate_user(n)
         if self.db.is_empty("vehicle"):
@@ -19,24 +18,26 @@ class Controller:
             self.db.populate_insurance(n)
         if self.db.is_empty("payment"):
             self.db.populate_payment(n)
-        # if self.db.is_empty("rent"):
-        #     self.db.populate_rent(n)
+        if self.db.is_empty("rent"):
+            self.db.populate_rent(1)
 
-    ##### SELECTS
+    # USERS
+    def insert_user(self, user: user.User):
+        return self.db.insert_user(user)
 
     # VEHICLE
 
     def insert_vehicle(self, vehicle: vehicle.Vehicle):
         return self.db.insert_vehicle(vehicle)
 
-    def update_vehicle(self, vehicle: vehicle.Vehicle):
-        return self.db.update_vehicle(vehicle)
-
     def delete_vehicle(self, plate: str):
         return self.db.delete_vehicle(plate)
 
     def select_all_vehicles(self):
         return self.db.select_all_vehicles()
+
+    def select_all_available_vehicles(self):
+        return self.db.select_all_available_vehicles()
 
     def select_all_imported_vehicles(self):
         return self.db.select_all_imported_vehicles()
@@ -82,6 +83,9 @@ class Controller:
 
     def delete_user(self, user_id: int):
         return self.db.delete_user(user_id)
+
+    def select_client(self, cpf: str):
+        return self.db.select_client(cpf)
 
     def select_all_imported_insurances(self):
         return self.db.select_all_imported_insurances()

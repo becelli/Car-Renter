@@ -1,6 +1,7 @@
 import tkinter as tk
 import controller.controller as controller
 import view.classes.objects as obj
+import view.classes.widgets as widgets
 import view.vehicle as vehg
 import view.user as userg
 import view.rent as rentg
@@ -16,6 +17,7 @@ class Menubar:
         vehicle_menu = tk.Menu(bar, tearoff=0)
         bar.add_cascade(label="Veículos", menu=vehicle_menu)
         self.vehicle_menu_options(vehicle_menu, db)
+        self.textbox = widgets.TextOutput(self.root)
 
         user_menu = tk.Menu(bar, tearoff=0)
         bar.add_cascade(label="Usuários", menu=user_menu)
@@ -35,7 +37,8 @@ class Menubar:
         vehicles_reports = tk.Menu(menu, tearoff=0)
         menu.add_cascade(label="Consultar", menu=vehicles_reports)
         vehicles_reports.add_command(
-            label="Geral", command=lambda: print(self.c.select_all_vehicles())
+            label="Geral",
+            command=lambda: self.textbox.display(lambda: self.c.select_all_vehicles()),
         )
         vehicles_reports.add_command(
             label="Nacionais",
@@ -114,7 +117,7 @@ class Menubar:
 
         # Other options
         clients.add_command(
-            label="Cadastrar", command=lambda: userg.insert_client_gui(menu)
+            label="Cadastrar", command=lambda: userg.insert_client_gui(menu, db)
         )
         # TODO clients.add_command(label="Alterar", command=lambda: userg.update_client())
         # TODO clients.add_command(label="Excluir", command=lambda: userg.delete_client())
