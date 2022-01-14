@@ -1,9 +1,6 @@
-import re
 import model.classes.database as database
 from model.classes import insurance, vehicle, rent, user, payment
 from datetime import datetime
-
-from model.classes.payment import Payment
 
 
 class Controller:
@@ -31,11 +28,8 @@ class Controller:
     def insert_vehicle(self, vehicle: vehicle.Vehicle):
         return self.db.insert_vehicle(vehicle)
 
-    def delete_vehicle(self, plate: str):
-        return self.db.delete_vehicle(plate)
-
     def select_vehicle(self, plate: str):
-        return self.db.select_vehicle(plate)
+        return self.db.select_vehicle_by_plate(plate)
 
     def select_all_vehicles(self):
         return self.db.select_all_vehicles()
@@ -59,12 +53,6 @@ class Controller:
     def insert_vehicle(self, vehicle: vehicle.Vehicle):
         return self.db.insert_vehicle(vehicle)
 
-    def update_vehicle(self, vehicle: vehicle.Vehicle):
-        return self.db.update_vehicle(vehicle)
-
-    def delete_vehicle(self, plate: str):
-        return self.db.delete_vehicle(plate)
-
     def select_all_vehicles(self):
         return self.db.select_all_vehicles()
 
@@ -74,22 +62,25 @@ class Controller:
     def select_not_returned_vehicles(self):
         return self.db.select_not_returned_vehicles()
 
-    def select_rented_vehicles_by_client_id(self):
-        return self.db.select_rented_vehicles_by_client_id()
+    def select_rented_vehicles_by_client(self, cpf: str):
+        return self.db.select_rented_vehicles_by_client(cpf)
+
+    def select_rent_history_of(self, cpf: str):
+        return self.db.select_rent_history_of(cpf)
+
+    def select_expired_rents_of(self, cpf: str):
+        return self.db.select_expired_rents_of(cpf)
 
     #  USERS
 
     def insert_user(self, user: user.User):
         return self.db.insert_user(user)
 
-    def update_user(self, user: user.User):
-        return self.db.update_user(user)
-
-    def delete_user(self, user_id: int):
-        return self.db.delete_user(user_id)
-
     def select_client(self, cpf: str) -> user.User:
         return self.db.select_client(cpf)
+
+    def select_employee(self, cpf: str) -> user.User:
+        return self.db.select_employee(cpf)
 
     def select_all_imported_insurances(self):
         return self.db.select_all_imported_insurances()
@@ -109,12 +100,6 @@ class Controller:
     # RENT
     def insert_rent(self, rent: rent.Rent):
         return self.db.insert_rent(rent)
-
-    def update_rent(self, rent: rent.Rent):
-        return self.db.update_rent(rent)
-
-    def delete_rent(self, rent_id: int):
-        return self.db.delete_rent(rent_id)
 
     def select_all_rents(self):
         return self.db.select_all_rents()
@@ -139,17 +124,17 @@ class Controller:
     def insert_insurance(self, insurance: insurance.Insurance):
         return self.db.insert_insurance(insurance)
 
-    def update_insurance(self, insurance: insurance.Insurance):
-        return self.db.update_insurance(insurance)
-
-    def delete_insurance(self, insurance_id: int):
-        return self.db.delete_insurance(insurance_id)
-
     def select_all_insurances(self):
         return self.db.select_all_insurances()
+
+    def select_insurance(self, id):
+        return self.db.select_insurance(id)
 
     def insert_payment(self, payment: payment.Payment):
         return self.db.insert_payment(payment)
 
     def select_rents_monthly(self, month: datetime):
         return self.db.select_rents_monthly(month)
+
+    def select_employee_of_the_month(self, month: datetime):
+        return self.db.select_employee_of_the_month(month)

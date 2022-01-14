@@ -7,7 +7,7 @@ import view.classes.objects as obj
 import view.classes.widgets as widgets
 
 
-class ViewRent:
+class Rent:
     def __init__(self, root, db):
         self.root = root
         self.database_name = db
@@ -34,82 +34,83 @@ class ViewRent:
         btn.grid(row=5, column=1)
 
     def validate_and_insurances(self, window):
-        entries = {
+        self.entries = {
             "Placa": self.plate.get()[0:8],
             "CPF": self.client.get()[0:11],
             "CPF_Funcionário": self.employee.get()[0:11],
             "Data_Início": self.start_date.get()[0:10],
             "Data_Devolução": self.end_date.get()[0:10],
         }
-        validate = self.validate_rent_input(entries)
-        if validate == "success":
+        errors = self.validate_rent_input()
+        if len(errors) > 0:
+            for error in errors:
+                tkmb.showerror("Erro", error)
+        else:
             self.choose_insurance(window)
 
-    def validate_rent_input(self, input):
+    def validate_rent_input(self):
         errors = []
-        if input["Placa"] == "":
+        if self.entries["Placa"] == "":
             errors.append("Placa não pode ser vazia")
-        if len(input["Placa"]) > 0 and len(input["Placa"]) != 8:
+        if len(self.entries["Placa"]) > 0 and len(self.entries["Placa"]) != 8:
             errors.append("Placa deve conter 8 caracteres")
-        for i in range(len(input["Placa"])):
+        for i in range(len(self.entries["Placa"])):
             if i < 3:
-                if not input["Placa"][i].isalpha():
+                if not self.entries["Placa"][i].isalpha():
                     errors.append("Placa deve estar no formato ABC-1234")
                     break
             elif i == 3:
-                if not input["Placa"][i] == "-":
+                if not self.entries["Placa"][i] == "-":
                     errors.append("Placa deve estar no formato ABC-1234")
                     break
             else:
-                if not input["Placa"][i].isdigit():
+                if not self.entries["Placa"][i].isdigit():
                     errors.append("Placa deve estar no formato ABC-1234")
                     break
-        if input["CPF"] == "":
+        if self.entries["CPF"] == "":
             errors.append("CPF não pode ser vazio")
-        if len(input["CPF"]) > 0 and len(input["CPF"]) != 11:
+        if len(self.entries["CPF"]) > 0 and len(self.entries["CPF"]) != 11:
             errors.append("CPF deve conter 11 caracteres")
-        for i in range(len(input["CPF"])):
-            if not input["CPF"][i].isdigit():
+        for i in range(len(self.entries["CPF"])):
+            if not self.entries["CPF"][i].isdigit():
                 errors.append("CPF deve conter apenas números")
                 break
-        if input["CPF_Funcionário"] == "":
+        if self.entries["CPF_Funcionário"] == "":
             errors.append("CPF não pode ser vazio")
-        if len(input["CPF_Funcionário"]) > 0 and len(input["CPF_Funcionário"]) != 11:
+        if (
+            len(self.entries["CPF_Funcionário"]) > 0
+            and len(self.entries["CPF_Funcionário"]) != 11
+        ):
             errors.append("CPF deve conter 11 caracteres")
-        for i in range(len(input["CPF_Funcionário"])):
-            if not input["CPF_Funcionário"][i].isdigit():
+        for i in range(len(self.entries["CPF_Funcionário"])):
+            if not self.entries["CPF_Funcionário"][i].isdigit():
                 errors.append("CPF deve conter apenas números")
                 break
-        if input["Data_Início"] == "":
+        if self.entries["Data_Início"] == "":
             errors.append("Data de Início não pode ser vazia")
-        if input["Data_Início"] != "":
+        if self.entries["Data_Início"] != "":
             try:
-                datetime.strptime(input["Data_Início"], "%Y-%m-%d")
+                datetime.strptime(self.entries["Data_Início"], "%Y-%m-%d")
             except ValueError:
                 errors.append("Data de Início inválida")
-        if input["Data_Devolução"] == "":
+        if self.entries["Data_Devolução"] == "":
             errors.append("Data de Devolução não pode ser vazia")
-        if input["Data_Devolução"] != "":
+        if self.entries["Data_Devolução"] != "":
             try:
-                datetime.strptime(input["Data_Devolução"], "%Y-%m-%d")
+                datetime.strptime(self.entries["Data_Devolução"], "%Y-%m-%d")
             except ValueError:
                 errors.append("Data de Devolução inválida")
-        if input["Data_Início"] != "" and input["Data_Devolução"] != "":
+        if self.entries["Data_Início"] != "" and self.entries["Data_Devolução"] != "":
             try:
                 if datetime.strptime(
-                    input["Data_Início"], "%Y-%m-%d"
-                ) > datetime.strptime(input["Data_Devolução"], "%Y-%m-%d"):
+                    self.entries["Data_Início"], "%Y-%m-%d"
+                ) > datetime.strptime(self.entries["Data_Devolução"], "%Y-%m-%d"):
                     errors.append(
                         "Data de Início não pode ser maior que Data de Devolução"
                     )
             except ValueError:
-                pass
-
-        if len(errors) > 0:
-            for error in errors:
-                tkmb.showerror("Erro", error)
-            return "error"
-        return "success"
+                errors.append("Data de Início inválida")
+        return errors
 
     def choose_insurance(self, window):
         window.destroy()
@@ -275,7 +276,7 @@ class ViewRent:
                 self.card_num.get(),
                 self.card_flag.get(),
             )
-        elif payment_method == "cash":
+        else:
             self.payment = payment.Cash("Dinheiro")
         new_rent = rent.Rent(
             self.plate.get()[0:8],
@@ -287,7 +288,6 @@ class ViewRent:
             self.payment,
             self.checked,
         )
-        self.c.insert_payment(self.payment)
         self.c.insert_rent(new_rent)
         tkmb.showinfo("Pagamento", "Pagamento confirmado")
 
@@ -397,14 +397,9 @@ class ViewRent:
                 text="Devolver",
                 command=lambda: self.return_vehicle(gui, all_rents, listing, variable),
             ).pack(pady=10)
+        return
 
-    def return_vehicle(
-        self,
-        root,
-        rents: list,
-        r_listing: list,
-        option: str,
-    ):
+    def return_vehicle(self, root, rents: list, r_listing: list, option: str):
         for i in r_listing:
             if str(i) == str(option.get()):
                 import model.classes.rent as rent

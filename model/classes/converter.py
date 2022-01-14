@@ -1,19 +1,18 @@
 class Converter:
-    def dec2b_list(self, decimal: int) -> list:
+    def str2b_list(self, string) -> list:
         """
         Convert decimal to binary
         """
-        a = list(bin(decimal)[2:])
-        b = []
-        for i in a:
-            b.append(int(i))
-        return b
+        binary_list = []
+        for char in string:
+            binary_list.append(int(char))
+        return binary_list
 
-    def b_list2dec(self, binary_list: list) -> int:
+    def b_list2str(self, binary_list: list) -> str:
         """
-        Convert a binary array to a decimal
+        Convert a binary array to a string
         """
-        a = 0
+        a = ""
         for i in binary_list:
-            a += i * 2 ** (len(binary_list) - binary_list.index(i) - 1)
+            a += str(i)
         return a

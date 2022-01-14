@@ -3,7 +3,7 @@ import model.classes.database as database
 
 
 class Payment(ABC):
-    def __init__(self, name: str, id: int = None) -> None:
+    def __init__(self, name: str = "Dinheiro", id: int = None) -> None:
         self._name: str = name
         self._id: int = id
 
@@ -31,7 +31,7 @@ class Payment(ABC):
 
 class Cash(Payment):
     def __init__(self, name: str = "Dinheiro", id: int = None) -> None:
-        self._name = name
+        self._name = name if name is not None else "Dinheiro"
         self._id = id
 
     def __str__(self):

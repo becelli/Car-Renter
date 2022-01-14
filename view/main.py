@@ -2,38 +2,42 @@ import tkinter as tk
 import controller.controller as controller
 import view.classes.objects as obj
 import view.classes.widgets as widgets
-import view.vehicle as vehg
-import view.user as userg
-import view.rent as rentg
+import view.vehicle as vg
+import view.user as ugui
+import view.rent as rgui
 import view.insurance as insg
 from PIL import ImageTk, Image
-import os
 
 
 class Menubar:
     def __init__(self, window, db: str = "app.db"):
         self.c = controller.Controller(db)
         self.root = window
+        self.user_gui = ugui.User(window, db)
+        self.vehicle_gui = vg.Vehicle(window, db)
+        self.rent_gui = rgui.Rent(window, db)
+        self.insurance_gui = insg.Insurance(window, db)
+
         bar = tk.Menu(self.root, tearoff=0)
         self.root.config(menu=bar)
         vehicle_menu = tk.Menu(bar, tearoff=0)
         bar.add_cascade(label="Veículos", menu=vehicle_menu)
-        self.vehicle_menu_options(vehicle_menu, db)
+        self.vehicle_menu_options(vehicle_menu)
         self.textbox = widgets.TextOutput(self.root)
 
         user_menu = tk.Menu(bar, tearoff=0)
         bar.add_cascade(label="Usuários", menu=user_menu)
-        self.user_menu_options(user_menu, db)
+        self.user_menu_options(user_menu)
 
         rents_menu = tk.Menu(bar, tearoff=0)
         bar.add_cascade(label="Locações", menu=rents_menu)
-        self.rents_menu_options(rents_menu, db)
+        self.rents_menu_options(rents_menu)
 
         insurance_menu = tk.Menu(bar, tearoff=0)
         bar.add_cascade(label="Seguros", menu=insurance_menu)
-        self.insurance_menu_options(insurance_menu, db)
+        self.insurance_menu_options(insurance_menu)
 
-    def vehicle_menu_options(self, menu, db: str = "app.db"):
+    def vehicle_menu_options(self, menu):
         # Reports
         # TODO pass as parameter to vehicle view
         vehicles_reports = tk.Menu(menu, tearoff=0)
@@ -77,24 +81,24 @@ class Menubar:
         # TODO Listar todos os Veículos já locados por um Cliente em específico.
         vehicles_reports.add_command(
             label="Locados por Cliente",
-            command=lambda: vehg.select_rented_vehicles_by_client_id(
-                vehicle_options, db
-            ),
+            command=lambda: self.vehicle_gui.select_rented_vehicles_by_client_id(),
         )
 
         vehicle_options = tk.Menu(menu, tearoff=0)
         menu.add_cascade(label="Cadastrar", menu=vehicle_options)
 
         vehicle_options.add_command(
-            label="Nacional", command=lambda: vehg.insert_national_gui(menu, db)
+            label="Nacional",
+            command=lambda: self.vehicle_gui.insert_national_gui(),
         )
         vehicle_options.add_command(
-            label="Importado", command=lambda: vehg.insert_imported_gui(menu, db)
+            label="Importado",
+            command=lambda: self.vehicle_gui.insert_imported_gui(),
         )
-        # TODO menu.add_command(label="Alterar", command=lambda: vehg.update_vehicle(menu))
-        # TODO menu.add_command(label="Excluir", command=lambda: vehg.delete_vehicle(menu))
+        # TODO menu.add_command(label="Alterar", command=lambda: self.vehicle_gui.update_vehicle(menu))
+        # TODO menu.add_command(label="Excluir", command=lambda: self.vehicle_gui.delete_vehicle(menu))
 
-    def user_menu_options(self, menu, db: str = "app.db"):
+    def user_menu_options(self, menu):
         # Employee submenu
         employees = tk.Menu(menu, tearoff=0)
         menu.add_cascade(label="Funcionários", menu=employees)
@@ -110,12 +114,11 @@ class Menubar:
         )
         employees_reports.add_command(
             label="Funcionário do mês",
-            command=lambda: self.textbox.display(
-                self.c.select_employee_of_month(), "Funcionário do mês"
-            ),
+            command=lambda: self.user_gui.select_employee_of_the_month(),
         )
         employees.add_command(
-            label="Cadastrar", command=lambda: userg.insert_employee_gui(menu, db)
+            label="Cadastrar",
+            command=lambda: self.user_gui.insert_employee_gui(),
         )
         # TODO employees.add_command(label="Alterar", command=lambda: userg.update_employee())
         # TODO employees.add_command(label="Excluir", command=lambda: userg.delete_employee())
@@ -132,21 +135,21 @@ class Menubar:
         )
         clients_reports.add_command(
             label="Histórico de locações",
-            command=lambda: userg.select_client_rents(menu, db),
+            command=lambda: self.user_gui.select_client_rent_history(),
         )
         clients_reports.add_command(
             label="Locações em atraso",
-            command=lambda: vehg.select_client_expired_rents(),
+            command=lambda: self.user_gui.select_expired_rents_of_client(),
         )
 
         # Other options
         clients.add_command(
-            label="Cadastrar", command=lambda: userg.insert_client_gui(menu, db)
+            label="Cadastrar", command=lambda: self.user_gui.insert_client_gui()
         )
         # TODO clients.add_command(label="Alterar", command=lambda: userg.update_client())
         # TODO clients.add_command(label="Excluir", command=lambda: userg.delete_client())
 
-    def rents_menu_options(self, menu, db: str = "app.db"):
+    def rents_menu_options(self, menu):
         rents_reports = tk.Menu(menu, tearoff=0)
         menu.add_cascade(label="Consultar", menu=rents_reports)
 
@@ -176,19 +179,19 @@ class Menubar:
         )
         rents_reports.add_command(
             label="Realizadas no mês",
-            command=lambda: rentg.ViewRent(menu, db).select_monthly_rents(),
+            command=lambda: self.rent_gui.select_monthly_rents(),
         )
         menu.add_command(
             label="Devolver",
-            command=lambda: rentg.ViewRent(menu, db).return_vehicle_gui(),
+            command=lambda: self.rent_gui.return_vehicle_gui(),
         )
         menu.add_command(
             label="Cadastrar",
-            command=lambda: rentg.ViewRent(menu, db).insert_rent_gui(),
+            command=lambda: self.rent_gui.insert_rent_gui(),
         )
         # TODO menu.add_command(label="Alterar", command=lambda: rentg.update_rent())
 
-    def insurance_menu_options(self, menu, db: str = "app.db"):
+    def insurance_menu_options(self, menu):
         menu.add_command(
             label="Consultar",
             command=lambda: self.textbox.display(
@@ -196,7 +199,7 @@ class Menubar:
             ),
         )
         menu.add_command(
-            label="Cadastrar", command=lambda: insg.insert_insurance_gui(menu, db)
+            label="Cadastrar", command=lambda: self.insurance_gui.insert_insurance_gui()
         )
         # TODO menu.add_command(label="Alterar", command=lambda: insg.update_insurance())
         # TODO menu.add_command(label="Excluir", command=lambda: insg.delete_insurance())

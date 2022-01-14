@@ -17,6 +17,7 @@ class Rent:
         insurance: list,
         is_returned: bool = False,
         id: int = None,
+        db: str = "app.db",
     ) -> None:
         self._vehicle_plate = vehicle_plate
         self._client_cpf = client_cpf
@@ -28,6 +29,7 @@ class Rent:
         self._insurance = insurance
         self._is_returned = is_returned
         self._id = id
+        self.db = db
 
     def save(self, db: str = "app.db"):
         ret = controller.Controller(db).insert_rent(self)
@@ -35,12 +37,18 @@ class Rent:
             self._id = ret
 
     def __str__(self):
-        insurance_str = ""
-        insurance = self.get_insurance()
-        if insurance is list:
-            for i in insurance:
-                insurance_str += str(i)
+        import model.classes.insurance as insurance
 
+        ins = self.get_insurance()
+        insurance_str = "Nenhum seguro contratado" if sum(ins) == 0 else ""
+        c = controller.Controller(self.db)
+        for i in range(len(ins)):
+            if ins[i]:
+                insur: insurance.Insurance = c.select_insurance(i + 1)
+                insurance_str += f"{insur.get_name()} - "
+        insurance_str = (
+            insurance_str[:-2] if insurance_str[-2:] == "- " else insurance_str
+        )
         return (
             f"ID: {self.get_id()}\n"
             f"Placa: {self.get_vehicle_plate()}\n"
@@ -48,7 +56,7 @@ class Rent:
             f"CPF do Funcionário: {self.get_employee_cpf()}\n"
             f"Data de Início: {str(self.get_start_date())[0:10]}\n"
             f"Data de Devolução: {str(self.get_end_date())[0:10]}\n"
-            f"Valor Total: {self.get_total_value()}\n"
+            f"Valor Total: {round(self.get_total_value(), 2)}\n"
             f"Pagamento: {self.get_payment()}\n"
             f"Seguros: {insurance_str}\n"
             f"Devolvido: {'S' if self.get_is_returned() else 'N'}\n"
