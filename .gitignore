@@ -18,3 +18,4 @@ var/
 venv/
 .vscode/settings.json
 *.db
+!app.db
