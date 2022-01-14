@@ -1,26 +1,36 @@
+# -*- coding: utf-8 -*-
+
 import tkinter as tk
 
 
-def cbc(id, tex):
-    return lambda: callback(id, tex)
+window = tk.Tk()
+window.title("My Window")
+window.geometry("100x100")
+
+l = tk.Label(window, bg="white", width=20, text="empty")
+l.pack()
 
 
-def callback(id, tex):
-    s = "At {} f is {}\n".format(id, id ** id / 0.987)
-    tex.insert(tk.END, s)
-    tex.see(tk.END)  # Scroll if necessary
+def print_selection():
+    if (var1.get() == 1) & (var2.get() == 0):
+        l.config(text="I love Python ")
+    elif (var1.get() == 0) & (var2.get() == 1):
+        l.config(text="I love C++")
+    elif (var1.get() == 0) & (var2.get() == 0):
+        l.config(text="I do not anything")
+    else:
+        l.config(text="I love both")
 
 
-top = tk.Tk()
-tex = tk.Text(master=top)
-tex.pack(side=tk.RIGHT)
-bop = tk.Frame()
-bop.pack(side=tk.LEFT)
+var1 = tk.IntVar()
+var2 = tk.IntVar()
+c1 = tk.Checkbutton(
+    window, text="Python", variable=var1, onvalue=1, offvalue=0, command=print_selection
+)
+c1.pack()
+c2 = tk.Checkbutton(
+    window, text="C++", variable=var2, onvalue=1, offvalue=0, command=print_selection
+)
+c2.pack()
 
-for k in range(1, 10):
-    tv = "Say {}".format(k)
-    b = tk.Button(bop, text=tv, command=cbc(k, tex))
-    b.pack()
-
-tk.Button(bop, text="Exit", command=top.destroy).pack()
-top.mainloop()
+window.mainloop()

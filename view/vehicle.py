@@ -72,7 +72,7 @@ def insert_imported_gui(root, db: str = "app.db"):
             text="Cadastrar",
             command=lambda: gui.destroy()
             if try_insert(entries, "imported", db) == "success"
-            else tkmb.showerror("Erro", try_insert(entries, "imported", db)),
+            else (tkmb.showerror("Erro", try_insert(entries, "imported", db))),
         ).grid(row=len(fields) + 3, column=1, sticky=tk.W, pady=10)
 
 

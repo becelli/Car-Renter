@@ -1,6 +1,8 @@
 import model.classes.database as database
-from model.classes import insurance, vehicle, rent, user
+from model.classes import insurance, vehicle, rent, user, payment
 from datetime import datetime
+
+from model.classes.payment import Payment
 
 
 class Controller:
@@ -11,15 +13,13 @@ class Controller:
         self.db.init_tables()
 
         if self.db.is_empty("user"):
-            self.db.populate_user(n)
+            self.db.populate_user(3 * n)
         if self.db.is_empty("vehicle"):
-            self.db.populate_vehicle(n)
+            self.db.populate_vehicle(2 * n)
         if self.db.is_empty("insurance"):
-            self.db.populate_insurance(n)
-        if self.db.is_empty("payment"):
-            self.db.populate_payment(n)
+            self.db.populate_insurance()
         if self.db.is_empty("rent"):
-            self.db.populate_rent(1)
+            self.db.populate_rent(n)
 
     # USERS
     def insert_user(self, user: user.User):
@@ -32,6 +32,9 @@ class Controller:
 
     def delete_vehicle(self, plate: str):
         return self.db.delete_vehicle(plate)
+
+    def select_vehicle(self, plate: str):
+        return self.db.select_vehicle(plate)
 
     def select_all_vehicles(self):
         return self.db.select_all_vehicles()
@@ -84,7 +87,7 @@ class Controller:
     def delete_user(self, user_id: int):
         return self.db.delete_user(user_id)
 
-    def select_client(self, cpf: str):
+    def select_client(self, cpf: str) -> user.User:
         return self.db.select_client(cpf)
 
     def select_all_imported_insurances(self):
@@ -102,6 +105,7 @@ class Controller:
     def select_client_late_rents(self):
         return self.db.select_client_late_rents()
 
+    # RENT
     def insert_rent(self, rent: rent.Rent):
         return self.db.insert_rent(rent)
 
@@ -126,6 +130,9 @@ class Controller:
     def select_monthly_rents(self, date: datetime):
         return self.db.select_monthly_rents(date)
 
+    def return_vehicle(self, rent_id: int):
+        return self.db.return_vehicle(rent_id)
+
     # INSURANCE
 
     def insert_insurance(self, insurance: insurance.Insurance):
@@ -139,3 +146,6 @@ class Controller:
 
     def select_all_insurances(self):
         return self.db.select_all_insurances()
+
+    def insert_payment(self, payment: payment.Payment):
+        return self.db.insert_payment(payment)

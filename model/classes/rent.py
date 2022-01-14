@@ -34,6 +34,26 @@ class Rent:
         if ret is not None:
             self._id = ret
 
+    def __str__(self):
+        insurance_str = ""
+        insurance = self.get_insurance()
+        if insurance is list:
+            for i in insurance:
+                insurance_str += str(i)
+
+        return (
+            f"ID: {self.get_id()}\n"
+            f"Placa: {self.get_vehicle_plate()}\n"
+            f"CPF do Cliente: {self.get_client_cpf()}\n"
+            f"CPF do Funcionário: {self.get_employee_cpf()}\n"
+            f"Data de Início: {str(self.get_start_date())[0:10]}\n"
+            f"Data de Devolução: {str(self.get_end_date())[0:10]}\n"
+            f"Valor Total: {self.get_total_value()}\n"
+            f"Pagamento: {self.get_payment()}\n"
+            f"Seguros: {insurance_str}\n"
+            f"Devolvido: {'S' if self.get_is_returned() else 'N'}\n"
+        )
+
     # TODO
     def calculate_total_value(self):
         db = database.Database()
@@ -69,7 +89,7 @@ class Rent:
     def get_total_value(self):
         return self._total_value
 
-    def get_payment(self):
+    def get_payment(self) -> payment.Payment:
         return self._payment
 
     def get_insurance(self):

@@ -41,15 +41,15 @@ class Vehicle(ABC):
     @abstractmethod
     def __str__(self):
         return (
-            f"Model: {self.get_model()}\n"
-            f"Manufacturer: {self.get_manufacturer()}\n"
-            f"Fabrication Year: {self.get_fabrication_year()}\n"
-            f"Model Year: {self.get_model_year()}\n"
-            f"Plate: {self.get_plate()}\n"
-            f"Category: {self.get_category()}\n"
-            f"Fipe Value: {self.get_fipe_value()}\n"
-            f"Rent Value: {self.get_rent_value()}\n"
-            f"Is Available: {self.get_is_available()}\n"
+            f"Placa: {self.get_plate()}\n"
+            f"Modelo: {self.get_model()}\n"
+            f"Fabricante: {self.get_manufacturer()}\n"
+            f"Ano: {self.get_fabrication_year()}\n"
+            f"Ano-Modelo: {self.get_model_year()}\n"
+            f"Categoria: {self.get_category().capitalize()}\n"
+            f"FIPE: {self.get_fipe_value()}\n"
+            f"Diária: {self.get_rent_value()}\n"
+            f"Disponível: {'S' if self.get_is_available() else 'N'}\n"
         )
 
     # *************************************************************************
@@ -138,10 +138,12 @@ class National(Vehicle):
         self._state_taxes = state_taxes
 
     def calculate_daily_rent_value(self):
-        return self._rent_value * (1 + self.get_state_taxes())
+        return round(
+            self._rent_value * (1 + self.get_state_taxes()),
+        )
 
     def __str__(self):
-        return super().__str__() + f"State Taxes: {self.get_state_taxes()}\n"
+        return super().__str__() + f"Imposto Est.: {self.get_state_taxes()}\n"
 
     def get_state_taxes(self):
         return self._state_taxes
@@ -180,15 +182,17 @@ class Imported(Vehicle):
         self._federal_taxes = federal_taxes
 
     def calculate_daily_rent_value(self):
-        return self.get_rent_value() * (
-            1 + self.get_state_taxes() + self.get_federal_taxes()
+        return round(
+            self.get_rent_value()
+            * (1 + self.get_state_taxes() + self.get_federal_taxes()),
+            2,
         )
 
     def __str__(self):
         return (
             super().__str__()
-            + f"State Taxes: {self.get_state_taxes()} \n"
-            + f"Federal Taxes: {self.get_federal_taxes()} \n"
+            + f"Imposto Est.: {self.get_state_taxes()} \n"
+            + f"Imposto Fed.: {self.get_federal_taxes()} \n"
         )
 
     def get_state_taxes(self):

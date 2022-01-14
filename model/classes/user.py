@@ -6,9 +6,9 @@ import model.classes.database as database
 class User(ABC):
     def __init__(
         self,
-        name: str,
         cpf: str,
         rg: str,
+        name: str,
         birth_date: date,
         address: str,
         zip_code: str,
@@ -28,13 +28,13 @@ class User(ABC):
     @abstractmethod
     def __str__(self):
         return (
-            f"Name: {self.get_name()}\n"
-            f"Personal ID: {self.get_cpf()}\n"
-            f"General ID: {self.get_rg()}\n"
-            f"Birth date: {self.get_birth_date()}\n"
-            f"Address: {self.get_address()}\n"
-            f"Zip code: {self.get_zip_code()}\n"
-            f"Email: {self.get_email()}\n"
+            f"Nome: {self.get_name()}\n"
+            f"CPF: {self.get_cpf()}\n"
+            f"RG: {self.get_rg()}\n"
+            f"Nascimento: {self.get_birth_date()}\n"
+            f"Endereço: {self.get_address()}\n"
+            f"CEP: {self.get_zip_code()}\n"
+            f"E-mail: {self.get_email()}\n"
         )
 
     def get_name(self):
@@ -83,9 +83,9 @@ class User(ABC):
 class Employee(User):
     def __init__(
         self,
-        name: str,
         cpf: str,
         rg: str,
+        name: str,
         birth_date: date,
         address: str,
         zip_code: str,
@@ -94,7 +94,7 @@ class Employee(User):
         pis: str,
         admission_date: date,
     ):
-        super().__init__(name, cpf, rg, birth_date, address, zip_code, email)
+        super().__init__(cpf, rg, name, birth_date, address, zip_code, email)
         self._salary = salary
         self._pis = pis
         self._admission_date = admission_date
@@ -102,9 +102,9 @@ class Employee(User):
     def __str__(self):
         return (
             super().__str__()
-            + f"Salary: {self.get_salary()}\n"
-            + f"Government ID: {self.get_pis()}\n"
-            + f"Admission Date: {self.get_admission_date()}\n"
+            + f"Salário: {self.get_salary()}\n"
+            + f"PIS: {self.get_pis()}\n"
+            + f"Data de Admissão: {self.get_admission_date()}\n"
         )
 
     def get_salary(self):
@@ -129,9 +129,9 @@ class Employee(User):
 class Client(User):
     def __init__(
         self,
-        name: str,
         cpf: str,
         rg: str,
+        name: str,
         birth_date: date,
         address: str,
         zip_code: str,
@@ -141,7 +141,7 @@ class Client(User):
         permission_expiration,
         is_golden_client,
     ):
-        super().__init__(name, cpf, rg, birth_date, address, zip_code, email)
+        super().__init__(cpf, rg, name, birth_date, address, zip_code, email)
         self._permission_category = permission_category
         self._permission_number = permission_number
         self._permission_expiration = permission_expiration
@@ -150,10 +150,10 @@ class Client(User):
     def __str__(self):
         return (
             super().__str__()
-            + f"Permission Category: {self.get_permission_category()}\n"
-            + f"Permission Number: {self.get_permission_number()}\n"
-            + f"Permission Expiration: {self.get_permission_expiration()}\n"
-            + f"Is Golden Client: {True if self.get_is_golden_client() else False}\n"
+            + f"Categoria CNH: {self.get_permission_category()}\n"
+            + f"Número da CNH: {self.get_permission_number()}\n"
+            + f"Renovação CNH: {self.get_permission_expiration()}\n"
+            + f"Cliente ouro?: {True if self.get_is_golden_client() else False}\n"
         )
 
     def get_permission_category(self):

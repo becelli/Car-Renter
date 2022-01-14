@@ -1,18 +1,18 @@
 from abc import ABC, abstractmethod
-import model.classes.database as db
+import model.classes.database as database
 
 
 class Payment(ABC):
-    def __init__(self, name, id: int = None) -> None:
+    def __init__(self, name: str, id: int = None) -> None:
         self._name: str = name
         self._id: int = id
 
     @abstractmethod
     def __str__(self):
-        return f"Nome: {self.get_name()}"
+        return f"{self.get_name()}"
 
-    def save(self, database: str = "app.db"):
-        ret = db.Database(database).insert_payment(self)
+    def save(self, db: str = "app.db"):
+        ret = database.Database(db).insert_payment(self)
         if ret is not None:
             self._id = ret
 
@@ -31,10 +31,11 @@ class Payment(ABC):
 
 class Cash(Payment):
     def __init__(self, name: str = "Dinheiro", id: int = None) -> None:
-        super().__init__(name, id)
+        self._name = name
+        self._id = id
 
     def __str__(self):
-        return super().__str__()
+        return f"{self.get_name()}"
 
     def get_name(self):
         return self._name

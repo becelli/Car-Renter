@@ -109,9 +109,9 @@ class ClassesData:
             choice = 1
         rd.seed(time.time())
         [
-            name,
             cpf,
             rg,
+            name,
             birth_date,
             address,
             zip_code,
@@ -127,9 +127,9 @@ class ClassesData:
 
         if choice == 0:
             return user.Client(
-                name,
                 cpf,
                 rg,
+                name,
                 birth_date,
                 address,
                 zip_code,
@@ -141,9 +141,9 @@ class ClassesData:
             )
         else:
             return user.Employee(
-                name,
                 cpf,
                 rg,
+                name,
                 birth_date,
                 address,
                 zip_code,
@@ -153,14 +153,17 @@ class ClassesData:
                 admission_date,
             )
 
-    def payment(self, client_name: str = "Unknown"):
+    def payment(self, client_name: str = "desconhecido"):
         import model.classes.payment as payment
 
         c = rd.choice([0, 1])
         if c:
-            return payment.Cash()
+            return payment.Cash("Dinheiro")
         else:
-            name = self.basic_data.name() if client_name == "Unknown" else client_name
+            name = (
+                self.basic_data.name() if client_name == "desconhecido" else client_name
+            )
+            name = "Cartão de " + name
             number = self.formats.nsize_num_as_str(16)
             flags = ["Visa", "Mastercard", "American Express", "Hipercard", "Elo"]
             flag = rd.choice(flags)
@@ -170,33 +173,75 @@ class ClassesData:
         [name, model, description, value] = self.insurance_info()
         return Insurance(name, model, description, value)
 
+    def default_insurances(self):
+        insurance_types = [
+            "Roubo",
+            "Furto",
+            "Acidente",
+            "Incêndio",
+            "Perda total",
+            "Alagamento",
+            "Dano mecânico",
+        ]
+        insurance_models = ["Reembolso", "Reposição"]
+        insurance_description = [
+            "Seguro contra roubos",
+            "Seguro contra furto",
+            "Seguro contra acidentes de trânsito",
+            "Seguro contra incendios e explosões",
+            "Seguro contra perda total de veículo",
+            "Seguro contra alagamentos",
+            "Seguro contra danos mecânicos",
+        ]
+        insurances = []
+        for i in range(len(insurance_types)):
+            i_type = insurance_types[i]
+            i_model = rd.choice(insurance_models)
+            description = insurance_description[i]
+            insurances.append(
+                Insurance(
+                    f"Seguro contra {i_type}",
+                    i_model,
+                    description,
+                    round(rd.randint(30, 60) + rd.random(), 2),
+                )
+            )
+        return insurances
+
     def rent(self):
         import model.classes.rent as rent
-        import model.classes.payment as payment
+        import model.classes.payment as pmt
+        import model.classes.user as user
 
-        [
-            plate,
-            client_cpf,
-            employee_cpf,
-            start_date,
-            end_date,
-            total_value,
-            insurance,
-            is_returned,
-        ] = self.rent_info()
+        data = self.rent_info()
+        if data is None:
+            return None
+        else:
+            [
+                plate,
+                client_cpf,
+                employee_cpf,
+                start_date,
+                end_date,
+                total_value,
+                insurance,
+                is_returned,
+            ] = data
 
-        paymt: payment.Payment = self.payment(self.controller.select_client(client_cpf))
-        return rent.Rent(
-            plate,
-            client_cpf,
-            employee_cpf,
-            start_date,
-            end_date,
-            total_value,
-            paymt,
-            insurance,
-            is_returned,
-        )
+            clt: user.Client = self.controller.select_client(client_cpf)
+            clt_str = clt.get_name() if clt is not None else "desconhecido"
+            paymt: pmt.Payment = self.payment(clt_str)
+            return rent.Rent(
+                plate,
+                client_cpf,
+                employee_cpf,
+                start_date,
+                end_date,
+                total_value,
+                paymt,
+                insurance,
+                is_returned,
+            )
 
     def rent_info(self):
         import model.classes.vehicle as vehicle
@@ -206,54 +251,56 @@ class ClassesData:
         vehicles = self.controller.select_all_available_vehicles()
         employees = self.controller.select_all_employees()
         clients = self.controller.select_all_clients()
-        v: vehicle.Vehicle = rd.choice(vehicles)
-        e: user.Employee = rd.choice(employees)
+        v: vehicle.Vehicle = rd.choice(vehicles) if len(vehicles) > 0 else None
+        e: user.Employee = rd.choice(employees) if len(employees) > 0 else None
         c: user.Client = rd.choice(clients) if len(clients) > 0 else None
+        if v is None or e is None or c is None:
+            return None
+        else:
+            year = rd.randint(2019, 2021)
+            d = dt.strptime(self.formats.date_as_string(year, year + 1), "%Y-%m-%d")
 
-        year = rd.randint(2019, 2021)
-        d = dt.strptime(self.formats.date_as_string(year, year + 1), "%Y-%m-%d")
+            df = d + td(days=rd.randint(1, 7))
 
-        df = d + td(days=rd.randint(1, 7))
+            value = v.calculate_daily_rent_value() * df.day
 
-        value = v.calculate_daily_rent_value() * df.day
+            insurances = self.controller.select_all_insurances()
+            insurance = []
+            for i in insurances:
+                insurance.append(0)
 
-        insurances = self.controller.select_all_insurances()
-        insurance = []
-        for i in insurances:
-            insurance.append(0)
+            for insur in insurances:
+                if rd.choice([0, 0, 0, 1]):
+                    i: ins.Insurance = insur
+                    value += i.get_value()
+                    insurance[insurances.index(insur)] = 1
 
-        for insur in insurances:
-            if rd.choice([0, 0, 0, 1]):
-                i: ins.Insurance = insur
-                value += i.get_value()
-                insurance[insurances.index(insur)] = 1
+            is_returned = (
+                rd.choice([True, True, False])
+                if dt.now() > df
+                else rd.choice([True, False, False])
+            )
 
-        is_returned = (
-            rd.choice([True, True, False])
-            if dt.now() > df
-            else rd.choice([True, False, False])
-        )
-
-        return [
-            v.get_plate(),
-            c.get_cpf(),
-            e.get_cpf(),
-            d,
-            df,
-            value,
-            insurance,
-            is_returned,
-        ]
+            return [
+                v.get_plate(),
+                c.get_cpf(),
+                e.get_cpf(),
+                d,
+                df,
+                value,
+                insurance,
+                is_returned,
+            ]
 
     def user_info(self):
 
         name = self.basic_data.name()
         return [
-            name,  # user name
             self.formats.nsize_num_as_str(11),  # cpf
             self.formats.nsize_num_as_str(9),  # rg
+            name,  # user name
             self.formats.date_as_string(),  # birth_date
-            f"Street {self.basic_data.letter()}",  # address
+            f"Rua {self.basic_data.letter()}",  # address
             f"{self.formats.nsize_num_as_str(5)}-{self.formats.nsize_num_as_str(3)}",  # zip_code
             f"{name.split()[0].lower()}{rd.randint(0, 1000)}@mail.com",  # email
             rd.choice(["A", "B", "C", "D", "E"]),  # permission_category
@@ -295,6 +342,7 @@ class ClassesData:
         ]
         category = ["CARRO", "MOTOCICLETA", "CAMINHAO", "ONIBUS", "VAN", "BICICLETA"]
         fabrication_year = rd.randint(1990, 2021)
+        value = 100
         return [
             rd.choice(model),
             rd.choice(brand),  # manufacturer
@@ -303,9 +351,9 @@ class ClassesData:
             self.basic_data.plate(),
             rd.choice(category),
             round(
-                rd.random() * 10000 * rd.randint(1, 6), 2
+                rd.random() * 10000 * rd.randint(4, 6), 2
             ),  # price based on FIPE table
-            round(rd.random() * 100 * rd.randint(1, 3), 2),  # rent price
+            value + round(rd.random() * 100 * rd.randint(1, 3), 2),  # rent price
             rd.choice([True, False]),  # is available
             round(rd.random() / 3, 2),  # state taxes
             round(rd.random() / 4, 2),  # federal taxes
@@ -346,220 +394,145 @@ class BasicData:
     def letter(self) -> str:
         return chr(rd.randint(65, 90))
 
+    def card_flag(self) -> str:
+        flags = ["Visa", "Mastercard", "American Express", "Hipercard", "Elo"]
+        return rd.choice(flags)
+
     def name(self) -> str:
         firstname_list = [
-            "Carol",
-            "William",
-            "Chloe",
-            "Linda",
-            "Paul",
-            "Oliver",
-            "Jessica",
-            "Anna",
-            "George",
-            "Thomas",
-            "Elizabeth",
-            "James",
-            "Mia",
-            "Jack",
-            "Sophie",
-            "Olivia",
-            "Harry",
-            "Isabella",
-            "Jacob",
-            "Jessica",
-            "Noah",
-            "Emily",
-            "Liam",
-            "Ava",
-            "Alfie",
-            "Isla",
-            "Aria",
-            "Daniel",
-            "Chloe",
+            "Clara",
+            "Wesley",
+            "Gustavo",
+            "João",
+            "Maria",
+            "José",
+            "Pedro",
+            "Paulo",
             "Lucas",
+            "Joana",
+            "Roberto",
+            "Vinicius",
+            "Mariana",
+            "Ana",
+            "Paula",
+            "Larissa",
+            "Marcos",
+            "Joaquim",
+            "Rafael",
+            "Ricardo",
+            "Fernando",
+            "Luiz",
+            "Eduardo",
+            "Henrique",
+            "Vitor",
+            "Gabriel",
+            "Clarisse",
+            "Rafaela",
+            "Leticia",
+            "Bruno",
+            "Roberta",
+            "Daniel",
+            "Emanuel",
+            "Gabriela",
+            "Eduarda",
+            "Eva",
+            "Adão",
+            "Ana Paula",
+            "Antônio",
+            "Benedito",
+            "Bianca",
+            "Bruna",
+            "Catarina",
+            "Cecília",
+            "Cristiane",
+            "Davi",
+            "Samuel",
             "Sophia",
-            "Harry",
-            "Amelia",
-            "Ethan",
-            "Mia",
-            "Jacob",
-            "Charlotte",
-            "Michael",
-            "Abigail",
-            "Alexander",
-            "Elizabeth",
-            "William",
-            "Olivia",
-            "James",
-            "Isabella",
-            "Benjamin",
-            "Sophia",
-            "Elijah",
-            "Amelia",
-            "Lucas",
-            "Chloe",
-            "Hannah",
-            "Jack",
-            "Charlotte",
-            "Joshua",
-            "Charlotte",
-            "William",
-            "Olivia",
-            "James",
-            "Isabella",
-            "William",
-            "Amelia",
-            "James",
-            "Emily",
-            "Daniel",
-            "Abigail",
-            "Lucas",
-            "Ava",
-            "Ethan",
-            "Charlotte",
-            "Lucas",
-            "Chloe",
-            "Jack",
-            "Charlotte",
-            "Joshua",
-            "Charlotte",
-            "William",
-            "Olivia",
-            "James",
-            "Isabella",
-            "William",
-            "Amelia",
-            "James",
-            "Emily",
-            "Daniel",
-            "Abigail",
-            "Lucas",
-            "Ava",
-            "Ethan",
-            "Charlotte",
-            "Lucas",
-            "Chloe",
-            "Jack",
-            "Charlotte",
-            "Joshua",
-            "Charlotte",
-            "William",
-            "Olivia",
-            "James",
-            "Isabella",
-            "William",
-            "Amelia",
-            "James",
-            "Emily",
-            "Daniel",
-            "Abigail",
-            "Lucas",
-            "Ava",
-            "Ethan",
-            "Charlotte",
-            "Lucas",
-            "Chloe",
-            "Jack",
-            "Charlotte",
-            "Joshua",
-            "Charlotte",
-            "William",
-            "Olivia",
-            "James",
-            "Isabella",
-            "William",
-            "Amelia",
-            "James",
-            "Emily",
-            "Daniel",
-            "Abigail",
-            "Lucas",
-            "Ava",
-            "Ethan",
-            "Charlotte",
-            "Lucas",
-            "Chloe",
-            "Jack",
-            "Charlotte",
-            "Joshua",
-            "Charlotte",
-            "Oliver",
+            "Thiago",
+            "Vitória",
+            "Cleiton",
+            "Cleverson",
+            "Wagner",
+            "Waldir",
+            "Xavier",
+            "Yuri",
+            "Sérgio",
+            "Sônia",
+            "Fábio",
+            "Fátima",
+            "Fernando",
+            "Fernanda",
+            "Débora",
+            "Décio",
+            "Solange",
+            "Sabrina",
+            "Cristian",
+            "Calisto",
         ]
 
         lastname_list = [
-            "Smith",
-            "Johnson",
-            "Williams",
-            "Brown",
-            "Jones",
-            "Garcia",
-            "Miller",
-            "Davis",
-            "Rodriguez",
-            "Martinez",
-            "Hernandez",
-            "Lopez",
-            "Gonzalez",
-            "Wilson",
-            "Anderson",
-            "Thomas",
-            "Taylor",
-            "Moore",
-            "Jackson",
-            "Martin",
-            "Lee",
-            "Perez",
-            "Thompson",
-            "White",
-            "Harris",
-            "Sanchez",
-            "Clark",
-            "Ramirez",
-            "Lewis",
-            "Robinson",
-            "Walker",
-            "Young",
-            "Allen",
-            "King",
-            "Wright",
-            "Scott",
-            "Torres",
-            "Nguyen",
-            "Hill",
-            "Flores",
-            "Green",
-            "Adams",
-            "Nelson",
-            "Baker",
-            "Hall",
-            "Rivera",
-            "Campbell",
-            "Mitchell",
-            "Carter",
-            "Roberts",
+            "Silva",
+            "Santos",
+            "Oliveira",
+            "Pereira",
+            "Souza",
+            "Costa",
+            "Rodrigues",
+            "Almeida",
+            "Martins",
+            "Araújo",
+            "Simolini",
+            "Becelli",
+            "Borges",
+            "Bruno",
+            "Cabral",
+            "Carvalho",
+            "Cardoso",
+            "Cunha",
+            "Dias",
+            "Domingues",
+            "Fernandes",
+            "Fernando",
+            "Gomes",
+            "Gonçalves",
+            "Henrique",
+            "Jesus",
+            "Lima",
+            "Lopes",
+            "Macedo",
+            "Moraes",
+            "Moreira",
+            "Moura",
+            "Nascimento",
+            "Nogueira",
+            "Oliveira",
+            "Pacheco",
+            "Pereira",
+            "Ramos",
+            "Ribeiro",
+            "Rocha",
+            "Serra",
+            "Teixeira",
+            "Vieira",
+            "Valente",
+            "Voss",
+            "Xavier",
+            "Zanella",
+            "Zanetti",
+            "Zanin",
+            "Zanoni",
+            "Umbelino",
+            "Umbelita",
+            "Quaresma",
+            "Queiroz",
+            "Ernesto",
+            "Bernardes",
+            "Bianchi",
+            "Bianco",
+            "Brunelli",
+            "Durante",
+            "Duccio",
+            "Duchini",
         ]
 
         return rd.choice(firstname_list) + " " + rd.choice(lastname_list)
-
-
-# TODO remove
-# class DBGetter:
-#     def __init__(self, db: str = "app.db"):
-#         self.controller = c.Controller(db)
-
-#     def client(self):
-#         clients = self.controller.select_all_clients()
-#         return rd.choice(clients)
-
-#     def employee(self):
-#         employees = self.controller.select_all_employees()
-#         return rd.choice(employees)
-
-#     def national_vehicle(self):
-#         national_vehicles = self.controller.select_all_national_vehicles()
-#         return rd.choice(national_vehicles)
-
-#     def imported_vehicle(self):
-#         imported_vehicles = self.controller.select_all_imported_vehicles()
-#         return rd.choice(imported_vehicles)

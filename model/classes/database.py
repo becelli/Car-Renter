@@ -220,9 +220,9 @@ class Database:
             p = rand.ClassesData(self.database_name).payment()
             p.save(self.database_name)
 
-    def populate_insurance(self, quantity: int = 10):
-        for _i in range(quantity):
-            i = rand.ClassesData(self.database_name).insurance()
+    def populate_insurance(self):
+        di = rand.ClassesData(self.database_name).default_insurances()
+        for i in di:
             i.save(self.database_name)
 
     # USER #
@@ -270,6 +270,60 @@ class Database:
         )
 
     # VEHICLES #
+    def select_vehicle(self, plate: str):
+        self.cursor.execute(f"SELECT * FROM vehicle WHERE plate = '{plate}'")
+        v = self.cursor.fetchone()
+        [
+            plate,
+            origin,
+            model,
+            manufacturer,
+            fabrication_year,
+            model_year,
+            category,
+            fipe_value,
+            rent_value,
+            is_available,
+            active,
+        ] = v
+        if active:
+            if origin == "national":
+                q = self.cursor.execute(
+                    f"""SELECT state_taxes FROM national_vehicle WHERE plate = '{plate}'"""
+                ).fetchone()
+                [state_taxes] = q
+                return vehicle.National(
+                    plate,
+                    model,
+                    manufacturer,
+                    fabrication_year,
+                    model_year,
+                    category,
+                    fipe_value,
+                    rent_value,
+                    is_available,
+                    state_taxes,
+                )
+            elif origin == "imported":
+                q = self.cursor.execute(
+                    f"""SELECT state_taxes, federal_taxes FROM imported_vehicle WHERE plate = '{plate}'"""
+                ).fetchone()
+                [state_taxes, federal_taxes] = q
+                return vehicle.Imported(
+                    plate,
+                    model,
+                    manufacturer,
+                    fabrication_year,
+                    model_year,
+                    category,
+                    fipe_value,
+                    rent_value,
+                    is_available,
+                    state_taxes,
+                    federal_taxes,
+                )
+        return None
+
     def insert_vehicle(self, vehicle_object: vehicle.Vehicle):
         self.cursor.execute(
             "INSERT INTO vehicle (model, origin, manufacturer, fabrication_year, model_year, plate, category, fipe_value, rent_value) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -362,7 +416,7 @@ class Database:
     # RENT #
     def insert_rent(self, rent_object: rent.Rent) -> int:
         insurances = rent_object.get_insurance()
-        insurance = converter.Converter.b_list2dec(insurances)
+        insurance = converter.Converter().b_list2dec(insurances)
         obj_payment: payment.Payment = rent_object.get_payment()
         payment_id = obj_payment.get_id() if obj_payment else None
 
@@ -380,6 +434,10 @@ class Database:
                 rent_object.get_is_returned(),
             ),
         ).lastrowid
+        self.cursor.execute(
+            "UPDATE vehicle SET is_available = ? WHERE plate = ?",
+            (False, rent_object.get_vehicle_plate()),
+        )
         self.connection.commit()
         return id
 
@@ -569,11 +627,11 @@ class Database:
         query_result = self.cursor.fetchall()
         payments = []
         for query in query_result:
-            if query[1] == "cash":
-                self.cursor.execute(f"SELECT * FROM {query[1]} WHERE id = '{query[0]}'")
-                query_result = self.cursor.fetchone()
-                [id] = query_result
-                payments.append(payment.Cash(id))
+            self.cursor.execute(f"SELECT * FROM cash WHERE id = '{query[0]}'")
+            q = self.cursor.fetchone()
+            if q is not None and q != []:
+                [id, name] = q
+                payments.append(payment.Cash(name="ovo", id=id))
             else:
                 self.cursor.execute(f"SELECT * FROM card WHERE id = '{id}'")
                 query_result = self.cursor.fetchone()
@@ -593,6 +651,7 @@ class Database:
                         id,
                     )
                 )
+
         return payments
 
     def select_all_rents(self):
@@ -641,7 +700,7 @@ class Database:
             self.cursor.execute(f"SELECT * FROM cash WHERE id = '{payment_id}'")
             payment_data = self.cursor.fetchone()
             if payment_data is not None:
-                payment_obj = payment.Cash(payment_data[0])
+                payment_obj = payment.Cash(payment_data[1])
             else:
                 self.cursor.execute(f"SELECT * FROM card WHERE id = '{payment_id}'")
                 payment_data = self.cursor.fetchone()
@@ -650,7 +709,6 @@ class Database:
                         payment_data[1],
                         payment_data[2],
                         payment_data[3],
-                        payment_data[4],
                         payment_data[0],
                     )
             rents.append(
@@ -658,8 +716,8 @@ class Database:
                     vehicle_plate,
                     client_cpf,
                     employee_cpf,
-                    start_date,
-                    end_date,
+                    datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S"),
+                    datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S"),
                     value,
                     payment_obj,
                     insurances_list,
@@ -669,6 +727,7 @@ class Database:
             )
         return rents
 
+    # TODO  verifiy these selects on rents! WRONG VALUES!
     def select_all_finished_rents(self):
         self.cursor.execute("SELECT * FROM rent WHERE is_returned = 1")
         query_result = self.cursor.fetchall()
@@ -691,8 +750,8 @@ class Database:
                     vehicle_plate,
                     client_cpf,
                     employee_cpf,
-                    start_date,
-                    end_date,
+                    datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S"),
+                    datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S"),
                     value,
                     payment_id,
                     insurance_id,
@@ -726,8 +785,8 @@ class Database:
                     vehicle_plate,
                     client_cpf,
                     employee_cpf,
-                    start_date,
-                    end_date,
+                    datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S"),
+                    datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S"),
                     value,
                     payment_id,
                     insurance_id,
@@ -761,8 +820,8 @@ class Database:
                     vehicle_plate,
                     client_cpf,
                     employee_cpf,
-                    start_date,
-                    end_date,
+                    datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S"),
+                    datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S"),
                     value,
                     payment_id,
                     insurance_id,
@@ -800,8 +859,8 @@ class Database:
                     vehicle_plate,
                     client_cpf,
                     employee_cpf,
-                    start_date,
-                    end_date,
+                    datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S"),
+                    datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S"),
                     value,
                     payment_id,
                     insurance_id,
@@ -906,31 +965,36 @@ class Database:
         # else...
         [
             cpf,
+            _,
             rg,
             name,
             birth_date,
             address,
             zip_code,
             email,
+            active,
             _,
             permission_category,
             permission_number,
             permission_expiration_date,
             is_golden_client,
         ] = query_execution
-        return user.Client(
-            name,
-            cpf,
-            rg,
-            birth_date,
-            address,
-            zip_code,
-            email,
-            permission_category,
-            permission_number,
-            permission_expiration_date,
-            is_golden_client,
-        )
+        if active:
+            return user.Client(
+                cpf,
+                rg,
+                name,
+                birth_date,
+                address,
+                zip_code,
+                email,
+                permission_category,
+                permission_number,
+                permission_expiration_date,
+                is_golden_client,
+            )
+
+        return None
 
     def select_employee(self, cpf: str):
         self.cursor.execute(
@@ -1229,7 +1293,7 @@ class Database:
     def select_not_returned_vehicles(self):
         current_date = datetime.now().strftime("%Y-%m-%d")
         self.cursor.execute(
-            f"SELECT * FROM vehicle JOIN rent ON rent.vehicle = vehicle.plate WHERE {current_date} > rent.end_date"
+            f"SELECT * FROM vehicle JOIN rent ON rent.vehicle = vehicle.plate WHERE rent.is_returned = 0 AND rent.end_date < '{current_date}'"
         )
         query_execution = self.cursor.fetchall()
         if query_execution is None:
@@ -1248,63 +1312,75 @@ class Database:
                 fipe_value,
                 rent_value,
                 is_available,
+                active,
+                _,
+                _,
+                _,
+                _,
+                _,
+                _,
+                _,
+                _,
+                _,
+                _,
             ] = v
-            if origin == "imported":
-                self.cursor.execute(
-                    f"SELECT state_taxes, federal_taxes FROM imported_vehicle WHERE plate = '{plate}'"
-                )
-                query_execution = self.cursor.fetchone()
-                [state_taxes, federal_taxes] = query_execution
-                rents.append(
-                    vehicle.Imported(
-                        plate,
-                        model,
-                        manufacturer,
-                        fabrication_year,
-                        model_year,
-                        category,
-                        fipe_value,
-                        rent_value,
-                        is_available,
-                        state_taxes,
-                        federal_taxes,
+            if active:
+                if origin == "imported":
+                    self.cursor.execute(
+                        f"SELECT state_taxes, federal_taxes FROM imported_vehicle WHERE plate = '{plate}'"
                     )
-                )
-                rents.append(
-                    vehicle.Imported(
-                        plate,
-                        model,
-                        manufacturer,
-                        fabrication_year,
-                        model_year,
-                        category,
-                        fipe_value,
-                        rent_value,
-                        is_available,
-                        state_taxes,
-                        federal_taxes,
+                    query_execution = self.cursor.fetchone()
+                    [state_taxes, federal_taxes] = query_execution
+                    rents.append(
+                        vehicle.Imported(
+                            plate,
+                            model,
+                            manufacturer,
+                            fabrication_year,
+                            model_year,
+                            category,
+                            fipe_value,
+                            rent_value,
+                            is_available,
+                            state_taxes,
+                            federal_taxes,
+                        )
                     )
-                )
-            else:
-                self.cursor.execute(
-                    f"SELECT state_taxes FROM national_vehicle WHERE plate = '{plate}'"
-                )
-                query_execution = self.cursor.fetchone()
-                [state_taxes] = query_execution
-                rents.append(
-                    vehicle.National(
-                        plate,
-                        model,
-                        manufacturer,
-                        fabrication_year,
-                        model_year,
-                        category,
-                        fipe_value,
-                        rent_value,
-                        is_available,
-                        state_taxes,
+                    rents.append(
+                        vehicle.Imported(
+                            plate,
+                            model,
+                            manufacturer,
+                            fabrication_year,
+                            model_year,
+                            category,
+                            fipe_value,
+                            rent_value,
+                            is_available,
+                            state_taxes,
+                            federal_taxes,
+                        )
                     )
-                )
+                else:
+                    self.cursor.execute(
+                        f"SELECT state_taxes FROM national_vehicle WHERE plate = '{plate}'"
+                    )
+                    query_execution = self.cursor.fetchone()
+                    [state_taxes] = query_execution
+                    rents.append(
+                        vehicle.National(
+                            plate,
+                            model,
+                            manufacturer,
+                            fabrication_year,
+                            model_year,
+                            category,
+                            fipe_value,
+                            rent_value,
+                            is_available,
+                            state_taxes,
+                        )
+                    )
         return rents
 
     def select_imported_vehicle(self, plate: str):
@@ -1342,3 +1418,10 @@ class Database:
             state_taxes,
             federal_taxes,
         )
+
+    def return_vehicle(self, rent_id: int):
+        self.cursor.execute(f"UPDATE rent SET is_returned = '1' WHERE id = '{rent_id}'")
+        self.cursor.execute(
+            f"UPDATE vehicle SET is_available = '1' WHERE plate = (SELECT vehicle FROM rent WHERE rent.id = {rent_id} LIMIT 1)"
+        )
+        self.connection.commit()

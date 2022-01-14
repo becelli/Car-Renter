@@ -38,31 +38,46 @@ class Menubar:
         menu.add_cascade(label="Consultar", menu=vehicles_reports)
         vehicles_reports.add_command(
             label="Geral",
-            command=lambda: self.textbox.display(lambda: self.c.select_all_vehicles()),
+            command=lambda: self.textbox.display(
+                self.c.select_all_vehicles(), "Todos os Veículos"
+            ),
         )
         vehicles_reports.add_command(
             label="Nacionais",
-            command=lambda: print(self.c.select_all_national_vehicles()),
+            command=lambda: self.textbox.display(
+                self.c.select_all_national_vehicles(), "Veículos Nacionais"
+            ),
         )
         vehicles_reports.add_command(
             label="Importados",
-            command=lambda: print(self.c.select_all_imported_vehicles()),
+            command=lambda: self.textbox.display(
+                self.c.select_all_imported_vehicles(), "Veículos Importados"
+            ),
         )
         vehicles_reports.add_command(
             label="Disponíveis",
-            command=lambda: print(self.c.select_available_vehicles()),
+            command=lambda: self.textbox.display(
+                self.c.select_available_vehicles(), "Veículos Disponíveis"
+            ),
         )
         vehicles_reports.add_command(
-            label="Alugados", command=lambda: print(self.c.select_rented_vehicles())
+            label="Alugados",
+            command=lambda: self.textbox.display(
+                self.c.select_rented_vehicles(), "Veículos Alugados"
+            ),
         )
         vehicles_reports.add_command(
             label="Não Devolvidos",
-            command=lambda: print(self.c.select_not_returned_vehicles()),
+            command=lambda: self.textbox.display(
+                self.c.select_not_returned_vehicles(), "Veículos Não Devolvidos"
+            ),
         )
         # TODO Listar todos os Veículos já locados por um Cliente em específico.
         vehicles_reports.add_command(
             label="Locados por Cliente",
-            command=lambda: vehg.select_rented_vehicles_by_client_id(),
+            command=lambda: vehg.select_rented_vehicles_by_client_id(
+                vehicle_options, db
+            ),
         )
 
         vehicle_options = tk.Menu(menu, tearoff=0)
@@ -86,11 +101,16 @@ class Menubar:
         employees.add_cascade(label="Consultar", menu=employees_reports)
 
         employees_reports.add_command(
-            label="Todos", command=lambda: print(self.c.select_all_employees())
+            label="Todos",
+            command=lambda: self.textbox.display(
+                self.c.select_all_employees(), "Todos os Funcionários"
+            ),
         )
         employees_reports.add_command(
             label="Funcionário do mês",
-            command=lambda: self.c.select_employee_of_month(),
+            command=lambda: self.textbox.display(
+                self.c.select_employee_of_month(), "Funcionário do mês"
+            ),
         )
         employees.add_command(
             label="Cadastrar", command=lambda: userg.insert_employee_gui(menu, db)
@@ -105,14 +125,16 @@ class Menubar:
         clients.add_cascade(label="Consultar", menu=clients_reports)
 
         clients_reports.add_command(
-            label="Todos", command=lambda: print(self.c.select_all_clients())
+            label="Todos",
+            command=lambda: self.textbox.display(self.c.select_all_clients()),
         )
         clients_reports.add_command(
-            label="Histórico de locações", command=lambda: userg.select_client_rents()
+            label="Histórico de locações",
+            command=lambda: userg.select_client_rents(menu, db),
         )
         clients_reports.add_command(
             label="Locações em atraso",
-            command=lambda: self.c.select_client_expired_rents(),
+            command=lambda: vehg.select_client_expired_rents(),
         )
 
         # Other options
@@ -127,30 +149,49 @@ class Menubar:
         menu.add_cascade(label="Consultar", menu=rents_reports)
 
         rents_reports.add_command(
-            label="Todas", command=lambda: print(self.c.select_all_rents())
+            label="Todas",
+            command=lambda: self.textbox.display(
+                self.c.select_all_rents(), "Todas as Locações"
+            ),
         )
         rents_reports.add_command(
             label="Finalizadas",
-            command=lambda: print(self.c.select_all_finished_rents()),
+            command=lambda: self.textbox.display(
+                self.c.select_all_finished_rents(), "Locações Finalizadas"
+            ),
         )
         rents_reports.add_command(
             label="Em andamento",
-            command=lambda: print(self.c.select_all_ongoing_rents()),
+            command=lambda: self.textbox.display(
+                self.c.select_all_ongoing_rents(), "Locações em Andamento"
+            ),
         )
         rents_reports.add_command(
-            label="Em atraso", command=lambda: print(self.c.select_all_expired_rents())
+            label="Em atraso",
+            command=lambda: self.textbox.display(
+                self.c.select_all_expired_rents(), "Locações em Atraso"
+            ),
         )
         rents_reports.add_command(
-            label="Realizadas no mês", command=lambda: rentg.select_monthly_rents()
+            label="Realizadas no mês",
+            command=lambda: rentg.ViewRent(menu, db).select_monthly_rents(),
         )
         menu.add_command(
-            label="Cadastrar", command=lambda: rentg.insert_rent_gui(menu, db)
+            label="Devolver",
+            command=lambda: rentg.ViewRent(menu, db).return_vehicle_gui(),
+        )
+        menu.add_command(
+            label="Cadastrar",
+            command=lambda: rentg.ViewRent(menu, db).insert_rent_gui(),
         )
         # TODO menu.add_command(label="Alterar", command=lambda: rentg.update_rent())
 
     def insurance_menu_options(self, menu, db: str = "app.db"):
         menu.add_command(
-            label="Consultar", command=lambda: print(self.c.select_all_insurances())
+            label="Consultar",
+            command=lambda: self.textbox.display(
+                self.c.select_all_insurances(), "Todos os Seguros"
+            ),
         )
         menu.add_command(
             label="Cadastrar", command=lambda: insg.insert_insurance_gui(menu, db)

@@ -18,11 +18,11 @@ class Insurance:
 
     def __str__(self):
         return (
-            f"ID: {self._get_id()} \n"
-            f"Name: {self.get_name()} \n"
-            f"Model: {self.get_model()} \n"
-            f"Description: {self.get_description()} \n"
-            f"Value: {self.get_value()} \n"
+            f"Identificador: {self.get_id()} \n"
+            f"Nome: {self.get_name()} \n"
+            f"Modelo: {self.get_model()} \n"
+            f"Descrição: {self.get_description()} \n"
+            f"Valor: {self.get_value()} \n"
         )
 
     # *************************************************************************************************************************
