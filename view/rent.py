@@ -1,39 +1,39 @@
 from datetime import datetime, timedelta
-from functools import total_ordering
 import random as rd
 import tkinter as tk
 import tkinter.messagebox as tkmb
 import controller.controller as controller
-from model.classes.insurance import Insurance
 import view.classes.objects as obj
+import view.classes.widgets as widgets
 
 
 class ViewRent:
     def __init__(self, root, db):
         self.root = root
+        self.database_name = db
         self.c = controller.Controller(db)
 
     def insert_rent_gui(self):
-        self.gui1 = tk.Toplevel(self.root)
-        self.gui1.title("Cadastro de Locações")
-        self.gui1.geometry("500x180")
-        obj.center(self.gui1)
+        gui = tk.Toplevel(self.root)
+        gui.title("Cadastro de Locações")
+        gui.geometry("500x180")
+        obj.center(gui)
 
-        self.plate_input(self.gui1)
-        self.client_input(self.gui1)
-        self.employee_input(self.gui1)
-        self.start_date_input(self.gui1)
-        self.end_date_input(self.gui1)
+        self.plate_input(gui)
+        self.client_input(gui)
+        self.employee_input(gui)
+        self.start_date_input(gui)
+        self.end_date_input(gui)
         btn = tk.Button(
-            self.gui1,
+            gui,
             text="Cadastrar",
-            command=lambda: self.validate_and_insurances(),
+            command=lambda: self.validate_and_insurances(gui),
             width=20,
             height=2,
         )
         btn.grid(row=5, column=1)
 
-    def validate_and_insurances(self):
+    def validate_and_insurances(self, window):
         entries = {
             "Placa": self.plate.get()[0:8],
             "CPF": self.client.get()[0:11],
@@ -43,7 +43,7 @@ class ViewRent:
         }
         validate = self.validate_rent_input(entries)
         if validate == "success":
-            self.choose_insurance()
+            self.choose_insurance(window)
 
     def validate_rent_input(self, input):
         errors = []
@@ -111,10 +111,11 @@ class ViewRent:
             return "error"
         return "success"
 
-    def choose_insurance(self):
+    def choose_insurance(self, window):
+        window.destroy()
         gui = tk.Toplevel(self.root)
         gui.title("Escolha de Seguros")
-        gui.geometry("500x300")
+        gui.geometry("500x450")
         obj.center(gui)
         insurances = self.c.select_all_insurances()
 
@@ -137,13 +138,14 @@ class ViewRent:
         btn = tk.Button(
             gui,
             text="Confirmar",
-            command=lambda: self.payment_gui(),
+            command=lambda: self.payment_gui(gui),
             width=20,
             height=2,
         )
         btn.pack()
 
-    def payment_gui(self):
+    def payment_gui(self, window):
+        window.destroy()
         # Get the real values of the checkboxes
         for i in range(len(self.checked)):
             self.checked[i] = self.checked[i].get()
@@ -178,7 +180,7 @@ class ViewRent:
         ccbtn = tk.Button(
             gui,
             text="Cartão de Crédito",
-            command=lambda: self.credit_card_gui(),
+            command=lambda: self.credit_card_gui(gui),
             width=20,
             height=2,
         )
@@ -186,7 +188,7 @@ class ViewRent:
         ccb = tk.Button(
             gui,
             text="Dinheiro",
-            command=lambda: self.cash_gui(),
+            command=lambda: self.cash_gui(gui),
             width=20,
             height=2,
         )
@@ -198,7 +200,8 @@ class ViewRent:
         elif payment_method == "Dinheiro":
             self.cash_gui()
 
-    def credit_card_gui(self):
+    def credit_card_gui(self, window):
+        window.destroy()
         gui = tk.Toplevel(self.root)
         gui.title("Cartão de Crédito")
         gui.geometry("350x275")
@@ -228,7 +231,7 @@ class ViewRent:
         l.pack()
 
         self.card_flag = tk.Entry(gui, width=30)
-        flag = random.BasicData().card_flag()
+        flag = random.BasicData(self.database_name).card_flag()
         self.card_flag.insert(0, flag)
         self.card_flag.pack()
 
@@ -242,7 +245,8 @@ class ViewRent:
         )
         btn.pack()
 
-    def cash_gui(self):
+    def cash_gui(self, window):
+        window.destroy()
         gui = tk.Toplevel(self.root)
         gui.title("Dinheiro")
         gui.geometry("500x150")
@@ -409,3 +413,33 @@ class ViewRent:
                 r: rent.Rent = rents[index]
                 self.c.return_vehicle(r.get_id())
                 root.destroy()
+
+    def select_monthly_rents(self):
+        gui = tk.Toplevel(self.root)
+        gui.title("Relatório Mensal")
+        gui.geometry("400x125")
+        obj.center(gui)
+
+        tk.Label(gui, text="Mês:").pack(pady=10)
+        self.month = tk.Entry(gui, width=30)
+        self.month.insert(0, datetime.today().strftime("%Y-%m"))
+        self.month.pack()
+
+        tk.Button(
+            gui,
+            text="Gerar Relatório",
+            command=lambda: widgets.TextOutput(self.root).display(
+                self.c.select_rents_monthly(
+                    self.parse_date(self.month.get(), "%Y-%m"),
+                ),
+                self.c.select_rents_monthly(
+                    self.parse_date(self.month.get(), "%Y-%m"),
+                )[-1],
+            ),
+        ).pack(pady=10)
+
+    def parse_date(self, date: str, format: str) -> datetime:
+        try:
+            return datetime.strptime(date, format)
+        except ValueError:
+            tkmb.showerror("Erro", "Data inválida")

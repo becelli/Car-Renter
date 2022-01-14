@@ -153,7 +153,7 @@ class Client(User):
             + f"Categoria CNH: {self.get_permission_category()}\n"
             + f"Número da CNH: {self.get_permission_number()}\n"
             + f"Renovação CNH: {self.get_permission_expiration()}\n"
-            + f"Cliente ouro?: {True if self.get_is_golden_client() else False}\n"
+            + f"Cliente ouro?: {'S' if self.get_is_golden_client() else 'N'}\n"
         )
 
     def get_permission_category(self):

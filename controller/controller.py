@@ -1,3 +1,4 @@
+import re
 import model.classes.database as database
 from model.classes import insurance, vehicle, rent, user, payment
 from datetime import datetime
@@ -149,3 +150,6 @@ class Controller:
 
     def insert_payment(self, payment: payment.Payment):
         return self.db.insert_payment(payment)
+
+    def select_rents_monthly(self, month: datetime):
+        return self.db.select_rents_monthly(month)

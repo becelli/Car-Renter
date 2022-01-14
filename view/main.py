@@ -6,6 +6,8 @@ import view.vehicle as vehg
 import view.user as userg
 import view.rent as rentg
 import view.insurance as insg
+from PIL import ImageTk, Image
+import os
 
 
 class Menubar:
@@ -215,5 +217,13 @@ class Application(tk.Frame):
 
 def main(db):
     root = tk.Tk()
+
+    img = ImageTk.PhotoImage(
+        Image.open("./view/assets/logo.png").resize((350, 350), Image.ANTIALIAS)
+    )
+
+    panel = tk.Label(root, image=img)
+    panel.pack(side="bottom", fill="both", expand="yes")
+
     app = Application(root, db)
     app.root.mainloop()

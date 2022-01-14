@@ -257,10 +257,10 @@ class ClassesData:
         if v is None or e is None or c is None:
             return None
         else:
-            year = rd.randint(2019, 2021)
+            year = rd.randint(2020, 2021)
             d = dt.strptime(self.formats.date_as_string(year, year + 1), "%Y-%m-%d")
 
-            df = d + td(days=rd.randint(1, 7))
+            df = d + td(days=rd.randint(1, 14))
 
             value = v.calculate_daily_rent_value() * df.day
 
@@ -302,7 +302,7 @@ class ClassesData:
             self.formats.date_as_string(),  # birth_date
             f"Rua {self.basic_data.letter()}",  # address
             f"{self.formats.nsize_num_as_str(5)}-{self.formats.nsize_num_as_str(3)}",  # zip_code
-            f"{name.split()[0].lower()}{rd.randint(0, 1000)}@mail.com",  # email
+            f"{name.split()[0].lower()}{rd.randint(0, 100000)}@mail.com",  # email
             rd.choice(["A", "B", "C", "D", "E"]),  # permission_category
             self.formats.nsize_num_as_str(10),  # permission_number
             self.formats.date_as_string(y_min=2022, y_max=2025)[
@@ -353,7 +353,7 @@ class ClassesData:
             round(
                 rd.random() * 10000 * rd.randint(4, 6), 2
             ),  # price based on FIPE table
-            value + round(rd.random() * 100 * rd.randint(1, 3), 2),  # rent price
+            round(value + rd.random() * 100 * rd.randint(1, 3), 2),  # rent price
             rd.choice([True, False]),  # is available
             round(rd.random() / 3, 2),  # state taxes
             round(rd.random() / 4, 2),  # federal taxes
@@ -376,9 +376,7 @@ class ClassesData:
             f"Seguro contra {insurance}",
             model,
             description,
-            round(
-                rd.random() * 10000 * rd.randint(1, 3), 2
-            ),  # price based on FIPE table
+            round(rd.random() * 50 * rd.randint(1, 3), 2),  # price based on FIPE table
         ]
 
 

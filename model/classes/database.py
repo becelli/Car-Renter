@@ -1,5 +1,5 @@
 # Init database
-from datetime import datetime
+from datetime import datetime, timedelta
 import sqlite3 as sql3
 import model.classes.user as user
 import model.classes.vehicle as vehicle
@@ -831,13 +831,9 @@ class Database:
             )
         return rents
 
-    def select_monthly_rents(self, date: datetime):
-        year = date.year
-        month = date.month
-        next_year = year + 1 if month == 12 else year
-        next_month = month + 1 if next_year else 1
+    def select_rents_monthly(self, month: datetime):
         self.cursor.execute(
-            f"SELECT * FROM rent WHERE end_date >= {year}-{month}-01 AND end_date < {next_year}-{next_month}-01 AND is_returned = 0"
+            f"SELECT * FROM rent WHERE start_date > '{month}'  AND start_date < '{month + timedelta(days=30)}'"
         )
         query_result = self.cursor.fetchall()
         rents = []
@@ -851,9 +847,51 @@ class Database:
                 end_date,
                 value,
                 payment_id,
-                insurance_id,
+                insurance_sum,
                 is_returned,
             ] = query
+            insurances = converter.Converter().dec2b_list(insurance_sum)
+            insurances_list = []
+            for i in range(len(insurances)):
+                ins = insurances[i]
+                if ins == 1:
+                    self.cursor.execute(
+                        f"SELECT * FROM insurance WHERE id = '{2 ** i}'"
+                    )
+                    query_result = self.cursor.fetchone()
+                    [
+                        _,
+                        name,
+                        model,
+                        description,
+                        value,
+                    ] = query_result
+                    insurances_list.append(
+                        insurance.Insurance(
+                            2 ** i,
+                            name,
+                            model,
+                            description,
+                            value,
+                        )
+                    )
+            payment_obj = None
+            self.cursor.execute(f"SELECT * FROM cash WHERE id = '{payment_id}'")
+            payment_data = self.cursor.fetchone()
+            if payment_data is not None:
+                payment_obj = payment.Cash(payment_data[1])
+            else:
+                self.cursor.execute(f"SELECT * FROM card WHERE id = '{payment_id}'")
+                payment_data = self.cursor.fetchone()
+                if payment_data is not None:
+                    payment_obj = payment.Card(
+                        payment_data[1],
+                        payment_data[2],
+                        payment_data[3],
+                        payment_data[0],
+                    )
+            import model.classes.rent as rent
+
             rents.append(
                 rent.Rent(
                     vehicle_plate,
@@ -862,12 +900,16 @@ class Database:
                     datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S"),
                     datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S"),
                     value,
-                    payment_id,
-                    insurance_id,
+                    payment_obj,
+                    insurances_list,
                     is_returned,
                     id,
                 )
             )
+        total_value = 0
+        for rent in rents:
+            total_value += rent.get_total_value()
+        rents.append(f"Total: {total_value}")
         return rents
 
     def select_all_employees(self):
@@ -1240,54 +1282,56 @@ class Database:
                 fipe_value,
                 rent_value,
                 is_available,
+                active,
             ] = v
-            if origin == "imported":
-                self.cursor.execute(
-                    f"SELECT state_taxes, federal_taxes FROM imported_vehicle WHERE plate = '{plate}'"
-                )
-                query_execution = self.cursor.fetchone()
-                if query_execution is None:
-                    return None
-                # else...
-                [state_taxes, federal_taxes] = query_execution
-                vehicles.append(
-                    vehicle.Imported(
-                        plate,
-                        model,
-                        manufacturer,
-                        fabrication_year,
-                        model_year,
-                        category,
-                        fipe_value,
-                        rent_value,
-                        is_available,
-                        state_taxes,
-                        federal_taxes,
+            if active:
+                if origin == "imported":
+                    self.cursor.execute(
+                        f"SELECT state_taxes, federal_taxes FROM imported_vehicle WHERE plate = '{plate}'"
                     )
-                )
-            else:
-                self.cursor.execute(
-                    f"SELECT state_taxes FROM national_vehicle WHERE plate = '{plate}'"
-                )
-                query_execution = self.cursor.fetchone()
-                if query_execution is None:
-                    return None
-                # else...
-                [state_taxes] = query_execution
-                vehicles.append(
-                    vehicle.National(
-                        plate,
-                        model,
-                        manufacturer,
-                        fabrication_year,
-                        model_year,
-                        category,
-                        fipe_value,
-                        rent_value,
-                        is_available,
-                        state_taxes,
+                    query_execution = self.cursor.fetchone()
+                    if query_execution is None:
+                        return None
+                    # else...
+                    [state_taxes, federal_taxes] = query_execution
+                    vehicles.append(
+                        vehicle.Imported(
+                            plate,
+                            model,
+                            manufacturer,
+                            fabrication_year,
+                            model_year,
+                            category,
+                            fipe_value,
+                            rent_value,
+                            is_available,
+                            state_taxes,
+                            federal_taxes,
+                        )
                     )
-                )
+                else:
+                    self.cursor.execute(
+                        f"SELECT state_taxes FROM national_vehicle WHERE plate = '{plate}'"
+                    )
+                    query_execution = self.cursor.fetchone()
+                    if query_execution is None:
+                        return None
+                    # else...
+                    [state_taxes] = query_execution
+                    vehicles.append(
+                        vehicle.National(
+                            plate,
+                            model,
+                            manufacturer,
+                            fabrication_year,
+                            model_year,
+                            category,
+                            fipe_value,
+                            rent_value,
+                            is_available,
+                            state_taxes,
+                        )
+                    )
         return vehicles
 
     def select_not_returned_vehicles(self):

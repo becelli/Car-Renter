@@ -26,9 +26,9 @@ def insert_employee_gui(root, db: str = "app.db"):
         "Data de Admissão",
     )
     [
-        name,
         cpf,
         rg,
+        name,
         birth_date,
         address,
         zip_code,
@@ -96,9 +96,9 @@ def insert_client_gui(root, db: str = "app.db"):
         "Cliente Ouro [S/N]",
     )
     [
-        name,
         cpf,
         rg,
+        name,
         birth_date,
         address,
         zip_code,
