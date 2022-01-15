@@ -62,7 +62,6 @@ class Rent:
             f"Devolvido: {'S' if self.get_is_returned() else 'N'}\n"
         )
 
-    # TODO
     def calculate_total_value(self):
         db = database.Database()
         vehicle = db.select_national_vehicle(self.get_vehicle_plate())

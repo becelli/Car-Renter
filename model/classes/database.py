@@ -729,7 +729,6 @@ class Database:
 
         return [num, counter]
 
-    # TODO Simplify?
     def create_rent_object(self, rent_data: list):
         [
             id,

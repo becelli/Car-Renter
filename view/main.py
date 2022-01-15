@@ -6,7 +6,8 @@ import view.vehicle as vg
 import view.user as ugui
 import view.rent as rgui
 import view.insurance as insg
-#from PIL import ImageTk, Image
+
+# from PIL import ImageTk, Image
 
 
 class Menubar:
@@ -39,7 +40,7 @@ class Menubar:
 
     def vehicle_menu_options(self, menu):
         # Reports
-        # TODO pass as parameter to vehicle view
+
         vehicles_reports = tk.Menu(menu, tearoff=0)
         menu.add_cascade(label="Consultar", menu=vehicles_reports)
         vehicles_reports.add_command(
@@ -78,7 +79,7 @@ class Menubar:
                 self.c.select_not_returned_vehicles(), "Veículos Não Devolvidos"
             ),
         )
-        # TODO Listar todos os Veículos já locados por um Cliente em específico.
+
         vehicles_reports.add_command(
             label="Locados por Cliente",
             command=lambda: self.vehicle_gui.select_rented_vehicles_by_client_id(),
@@ -95,8 +96,6 @@ class Menubar:
             label="Importado",
             command=lambda: self.vehicle_gui.insert_imported_gui(),
         )
-        # TODO menu.add_command(label="Alterar", command=lambda: self.vehicle_gui.update_vehicle(menu))
-        # TODO menu.add_command(label="Excluir", command=lambda: self.vehicle_gui.delete_vehicle(menu))
 
     def user_menu_options(self, menu):
         # Employee submenu
@@ -120,8 +119,6 @@ class Menubar:
             label="Cadastrar",
             command=lambda: self.user_gui.insert_employee_gui(),
         )
-        # TODO employees.add_command(label="Alterar", command=lambda: userg.update_employee())
-        # TODO employees.add_command(label="Excluir", command=lambda: userg.delete_employee())
 
         # Clients Submenu
         clients = tk.Menu(menu, tearoff=0)
@@ -146,8 +143,6 @@ class Menubar:
         clients.add_command(
             label="Cadastrar", command=lambda: self.user_gui.insert_client_gui()
         )
-        # TODO clients.add_command(label="Alterar", command=lambda: userg.update_client())
-        # TODO clients.add_command(label="Excluir", command=lambda: userg.delete_client())
 
     def rents_menu_options(self, menu):
         rents_reports = tk.Menu(menu, tearoff=0)
@@ -189,7 +184,6 @@ class Menubar:
             label="Cadastrar",
             command=lambda: self.rent_gui.insert_rent_gui(),
         )
-        # TODO menu.add_command(label="Alterar", command=lambda: rentg.update_rent())
 
     def insurance_menu_options(self, menu):
         menu.add_command(
@@ -201,8 +195,6 @@ class Menubar:
         menu.add_command(
             label="Cadastrar", command=lambda: self.insurance_gui.insert_insurance_gui()
         )
-        # TODO menu.add_command(label="Alterar", command=lambda: insg.update_insurance())
-        # TODO menu.add_command(label="Excluir", command=lambda: insg.delete_insurance())
 
 
 class Application(tk.Frame):
