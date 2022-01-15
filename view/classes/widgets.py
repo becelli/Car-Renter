@@ -22,9 +22,9 @@ class TextOutput:
         bop = tk.Frame(master=root)
         bop.pack(side=tk.LEFT)
         tk.Button(bop, text="Mostrar", command=self.cbc(self.text, tex)).pack(
-            side=tk.LEFT
+            side=tk.TOP
         )
-        tk.Button(bop, text="Fechar", command=root.destroy).pack(side=tk.RIGHT)
+        tk.Button(bop, text="Fechar", command=root.destroy).pack(side=tk.BOTTOM)
 
     def cbc(self, text, tex):
         return lambda: self.callback(text, tex)
