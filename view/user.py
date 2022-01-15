@@ -85,7 +85,7 @@ class User:
         self.role = "client"
         gui = tk.Toplevel(self.root)
         gui.title("Cadastro de Cliente")
-        gui.geometry("420x280")
+        gui.geometry("420x290")
         obj.center(gui)
         fields = (
             "Nome",

@@ -20,8 +20,8 @@ class Start(tk.Frame):
         self.entry.insert(0, "app.db")
         self.entry.pack(pady=5)
         tk.Button(
-            self.root, text="OK", command=lambda: self.main(self.entry.get())
-        ).pack(pady=5)
+            self.root, text="  OK  ", command=lambda: self.main(self.entry.get())
+        ).pack(pady=5, padx=5)
         self.root.mainloop()
 
     def main(self, db: str = "app.db"):

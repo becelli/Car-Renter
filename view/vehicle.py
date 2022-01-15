@@ -20,7 +20,7 @@ class Vehicle:
         self.origin = "imported"
         gui = tk.Toplevel(self.root)
         gui.title("Cadastro de Veículo Importado")
-        gui.geometry("420x280")
+        gui.geometry("420x290")
         obj.center(gui)
         fields = (
             "Placa",
@@ -86,7 +86,7 @@ class Vehicle:
         self.origin = "national"
         gui = tk.Toplevel(self.root)
         gui.title("Cadastro de Veículo Nacional")
-        gui.geometry("420x260")
+        gui.geometry("420x290")
         obj.center(gui)
         fields = (
             "Placa",

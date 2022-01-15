@@ -212,6 +212,7 @@ class Application(tk.Frame):
 
         self.root.title("Renterio - Sistema de Locações de Veículos")
         self.root.geometry("600x400")
+
         obj.center(self.root)
         self.pack_propagate(False)
         self.pack()
@@ -220,11 +221,10 @@ class Application(tk.Frame):
 
 def main(db):
     root = tk.Tk()
-
+    root.resizable(False, False)
     img = ImageTk.PhotoImage(
         Image.open("./view/assets/logo.png").resize((350, 350), Image.ANTIALIAS)
     )
-
     panel = tk.Label(root, image=img)
     panel.pack(side="bottom", fill="both", expand="yes")
 
