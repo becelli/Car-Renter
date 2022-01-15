@@ -17,16 +17,16 @@ class Start(tk.Frame):
             text="Insira o nome do banco:",
         ).pack(pady=5)
         self.entry = tk.Entry(self.root)
-        self.entry.insert(0, "app.db")
+        self.entry.insert(0, "database.db")
         self.entry.pack(pady=5)
         tk.Button(
             self.root, text="  OK  ", command=lambda: self.main(self.entry.get())
         ).pack(pady=5, padx=5)
         self.root.mainloop()
 
-    def main(self, db: str = "app.db"):
+    def main(self, db: str = "database.db"):
         self.root.destroy()
-        db = "app.db" if db == "" else db
+        db = "database.db" if db == "" else db
         c = controller.Controller(db=db)
         c.init_database(35)
         gui.main(db)

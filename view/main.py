@@ -6,7 +6,7 @@ import view.vehicle as vg
 import view.user as ugui
 import view.rent as rgui
 import view.insurance as insg
-from PIL import ImageTk, Image
+#from PIL import ImageTk, Image
 
 
 class Menubar:
@@ -222,11 +222,11 @@ class Application(tk.Frame):
 def main(db):
     root = tk.Tk()
     root.resizable(False, False)
-    img = ImageTk.PhotoImage(
-        Image.open("./view/assets/logo.png").resize((350, 350), Image.ANTIALIAS)
-    )
-    panel = tk.Label(root, image=img)
-    panel.pack(side="bottom", fill="both", expand="yes")
+    # img = ImageTk.PhotoImage(
+    #     Image.open("./view/assets/logo.png").resize((350, 350), Image.ANTIALIAS)
+    # )
+    # panel = tk.Label(root, image=img)
+    # panel.pack(side="bottom", fill="both", expand="yes")
 
     app = Application(root, db)
     app.root.mainloop()

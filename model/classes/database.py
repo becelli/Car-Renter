@@ -12,7 +12,7 @@ import model.classes.random as rand
 class Database:
     def __init__(self, database_name):
         self.database_name = database_name
-        self.connection = sql3.connect(f"model/database/{self.database_name}")
+        self.connection = sql3.connect(f"./model/database/{self.database_name}")
         self.cursor = self.connection.cursor()
 
     # CREATING TABLES

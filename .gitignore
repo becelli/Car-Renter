@@ -1,6 +1,6 @@
 __pycache__/
 *.py[cod]
-.vscode
+.vscode/
 *$py.class
 *.so
 .Python
@@ -19,4 +19,5 @@ var/
 venv/
 .vscode/settings.json
 *.db
+!database.db
 !app.db
